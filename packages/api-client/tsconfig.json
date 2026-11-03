@@ -1,0 +1,4 @@
+{
+  "extends": "@cyient/shared-config/tsconfig.library.json",
+  "include": ["src"]
+}

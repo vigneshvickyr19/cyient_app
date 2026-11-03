@@ -1,0 +1,7 @@
+{
+  "extends": "@cyient/shared-config/tsconfig.app.json",
+  "compilerOptions": {
+    "types": ["vite/client", "vitest/importMeta", "@testing-library/jest-dom/vitest"]
+  },
+  "include": ["src"]
+}

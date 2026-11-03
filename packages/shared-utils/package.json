@@ -1,0 +1,23 @@
+{
+  "name": "@cyient/shared-utils",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Framework-free helpers: form validators, business dates (India Standard Time), formatting and file saving.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cyient/shared-config": "workspace:*",
+    "eslint": "^9.39.5",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

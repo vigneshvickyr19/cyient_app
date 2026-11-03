@@ -1,0 +1,30 @@
+{
+  "name": "@cyient/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typed fetch client for the Cyient DLM APIs, with types generated from each API's OpenAPI document.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./dcr": "./src/generated/dcr.ts",
+    "./dn": "./src/generated/dn.ts",
+    "./cc": "./src/generated/cc.ts",
+    "./ecn": "./src/generated/ecn.ts",
+    "./mppl": "./src/generated/mppl.ts",
+    "./platform": "./src/generated/platform.ts"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cyient/shared-config": "workspace:*",
+    "eslint": "^9.39.5",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

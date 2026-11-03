@@ -1,0 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Builds that need to run their own install scripts
+onlyBuiltDependencies:
+  - esbuild

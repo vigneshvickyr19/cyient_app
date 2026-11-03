@@ -1,0 +1,44 @@
+{
+  "name": "@cyient/mppl-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MPPL Escalation Tracker front end, for the MPPL API (BRD-07).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@cyient/api-client": "workspace:*",
+    "@cyient/shared-ui": "workspace:*",
+    "@cyient/shared-utils": "workspace:*",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.11",
+    "@mui/material": "^7.3.11",
+    "@mui/x-data-grid": "^8.29.5",
+    "@tanstack/react-query": "^5.105.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hook-form": "^7.91.0",
+    "react-router": "^7.18.5"
+  },
+  "devDependencies": {
+    "@cyient/shared-config": "workspace:*",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "eslint": "^9.39.5",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.7",
+    "vitest": "^3.2.7"
+  }
+}

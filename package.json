@@ -1,0 +1,24 @@
+{
+  "name": "cyient-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Front ends of the Cyient DLM workflow applications: one React app per backend API.",
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "check": "turbo run lint typecheck test build",
+    "generate:api": "pnpm --filter @cyient/api-client generate"
+  },
+  "devDependencies": {
+    "turbo": "^2.11.10",
+    "typescript": "~5.9.3"
+  }
+}
