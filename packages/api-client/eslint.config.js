@@ -1,3 +1,8 @@
 import { createEslintConfig } from '@cyient/shared-config/eslint';
 
-export default createEslintConfig({ tsconfigRootDir: import.meta.dirname });
+export default [
+  ...createEslintConfig({ tsconfigRootDir: import.meta.dirname }),
+  {
+    ignores: ['src/types/**'],
+  },
+];

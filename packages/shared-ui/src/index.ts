@@ -1,11 +1,23 @@
 export { HttpClientProvider, useHttpClient, usePlatformApi } from './api/HttpClientContext';
+export type { HttpClient } from '@cyient/api-client';
+export { createMockHttp, type MockHandler, type MockRoutes } from './test';
 export { createQueryClient, shouldRetry } from './api/queryClient';
 export { platformKeys } from './api/platformKeys';
 export { useApiVersion, useMasterItems, useMasterOptions, usePeopleSearch } from './api/platformQueries';
+export {
+  staticMasterItems,
+  staticPeople,
+  staticVersionInfo,
+  getStaticMasterItems,
+  searchStaticPeople,
+} from './api/staticPlatformData';
+export { createStaticAdminRoutes } from './api/staticAdminData';
 
 export { AuthProvider, useAuth, type AuthContextValue, type CurrentUser } from './auth/AuthProvider';
+export { defaultStaticUser, getStaticDevUser, staticUsersByLogin } from './auth/defaultStaticUser';
 export { createAuthSession, type AuthSettings } from './auth/createSession';
 export { RequirePermission } from './auth/RequirePermission';
+export { platformPermissions } from './auth/permissions';
 export { createDevelopmentSession, createEntraSession, type AuthMode, type AuthSession, type EntraSettings } from './auth/session';
 
 export { ActivityLog, type ActivityEntry } from './components/ActivityLog';

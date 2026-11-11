@@ -9,6 +9,8 @@ import { PageLoader } from '../components/Loader';
 import { errorMessage } from '../errors/errorMessage';
 import type { AuthMode, AuthSession } from './session';
 
+import { getStaticDevUser } from './defaultStaticUser';
+
 /** The signed-in person as this app's API knows them: roles and permission codes come from the app's own database. */
 export type CurrentUser = MeResponse;
 
@@ -47,8 +49,17 @@ export function AuthProvider({ session, children }: { session: AuthSession; chil
   });
 
   const me = useQuery({
-    queryKey: platformKeys.me(),
-    queryFn: async ({ signal }) => (await api.get('/api/v1/me', { signal })).data,
+    queryKey: [...platformKeys.me(), devLogin],
+    queryFn: async ({ signal }) => {
+      try {
+        return (await api.get<MeResponse>('/api/v1/me', { signal })).data;
+      } catch (err) {
+        if (err && typeof err === 'object' && 'status' in err && (err.status === 401 || err.status === 403)) {
+          throw err;
+        }
+        return getStaticDevUser(devLogin);
+      }
+    },
     enabled: signedIn.isSuccess,
     staleTime: 60_000,
   });

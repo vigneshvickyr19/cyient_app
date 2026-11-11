@@ -6,7 +6,11 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./dates": "./src/dates/index.ts",
+    "./files": "./src/files/index.ts",
+    "./format": "./src/format/index.ts",
+    "./validation": "./src/validation/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

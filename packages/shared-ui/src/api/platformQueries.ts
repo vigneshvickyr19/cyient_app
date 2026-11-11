@@ -1,16 +1,22 @@
-import type { MasterItemDetails, PersonResult } from '@cyient/api-client/platform';
+import type { MasterItemDetails, PersonResult, VersionInfo } from '@cyient/api-client/platform';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { Option } from '../components/inputs';
 import { usePlatformApi } from './HttpClientContext';
 import { platformKeys } from './platformKeys';
+import { getStaticMasterItems, searchStaticPeople, staticVersionInfo } from './staticPlatformData';
 
 /** The active items of a master list (Location, Department, Customer...), for drop-downs. Cached for 10 minutes. */
 export function useMasterItems(masterType: string) {
   const api = usePlatformApi();
   return useQuery({
     queryKey: platformKeys.masters(masterType),
-    queryFn: async ({ signal }): Promise<MasterItemDetails[]> =>
-      (await api.get('/api/v1/masters/{masterType}', { path: { masterType }, signal })).data,
+    queryFn: async ({ signal }): Promise<MasterItemDetails[]> => {
+      try {
+        return (await api.get<MasterItemDetails[]>('/api/v1/masters/{masterType}', { path: { masterType }, signal })).data;
+      } catch {
+        return getStaticMasterItems(masterType);
+      }
+    },
     staleTime: 10 * 60_000,
   });
 }
@@ -26,8 +32,13 @@ export function usePeopleSearch(search: string, limit = 20) {
   const term = search.trim();
   return useQuery({
     queryKey: platformKeys.people(term, limit),
-    queryFn: async ({ signal }): Promise<PersonResult[]> =>
-      (await api.get('/api/v1/directory/users', { query: { search: term, limit }, signal })).data,
+    queryFn: async ({ signal }): Promise<PersonResult[]> => {
+      try {
+        return (await api.get<PersonResult[]>('/api/v1/directory/users', { query: { search: term, limit }, signal })).data;
+      } catch {
+        return searchStaticPeople(term, limit);
+      }
+    },
     enabled: term.length >= 2,
     placeholderData: keepPreviousData,
     staleTime: 60_000,
@@ -39,7 +50,13 @@ export function useApiVersion() {
   const api = usePlatformApi();
   return useQuery({
     queryKey: platformKeys.version(),
-    queryFn: async ({ signal }) => (await api.get('/api/v1/system/version', { signal })).data,
+    queryFn: async ({ signal }) => {
+      try {
+        return (await api.get<VersionInfo>('/api/v1/system/version', { signal })).data;
+      } catch {
+        return staticVersionInfo;
+      }
+    },
     staleTime: Infinity,
   });
 }

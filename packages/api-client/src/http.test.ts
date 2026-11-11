@@ -152,4 +152,25 @@ describe('createHttpClient', () => {
 
     await expect(client.download('/x')).rejects.toMatchObject({ status: 403, message: 'Not yours' });
   });
+
+  it('provides default REST helper methods get, post, put, patch, delete', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(() => Promise.resolve(json(200, envelope({ count: 5 }))));
+    const client = createHttpClient({ baseUrl: 'http://api.test', fetch });
+
+    const getRes = await client.get('/api/v1/items', { query: { active: true } });
+    expect(getRes.data).toEqual({ count: 5 });
+
+    await client.post('/api/v1/items', { body: { name: 'Item 1' } });
+    await client.put('/api/v1/items/{id}', { path: { id: 1 }, body: { name: 'Item Updated' } });
+    await client.patch('/api/v1/items/{id}', { path: { id: 1 }, body: { active: false } });
+    await client.delete('/api/v1/items/{id}', { path: { id: 1 } });
+
+    expect(fetch.mock.calls.map(([url, init]) => `${init?.method ?? ''} ${url as string}`)).toEqual([
+      'GET http://api.test/api/v1/items?active=true',
+      'POST http://api.test/api/v1/items',
+      'PUT http://api.test/api/v1/items/1',
+      'PATCH http://api.test/api/v1/items/1',
+      'DELETE http://api.test/api/v1/items/1',
+    ]);
+  });
 });

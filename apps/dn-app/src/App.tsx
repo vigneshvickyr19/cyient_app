@@ -1,5 +1,5 @@
 import { AppShell, NotFoundPage, PageLoader, RequirePermission, useAuth, type NavGroup } from '@cyient/shared-ui';
-import { AdminArea, adminNav } from '@cyient/shared-ui/admin';
+import { AdminArea, adminNav } from './features/admin';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AssignmentIndOutlinedIcon from '@mui/icons-material/AssignmentIndOutlined';

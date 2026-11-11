@@ -29,7 +29,12 @@ export interface HttpClientOptions {
 
 export interface HttpClient {
   readonly baseUrl: string;
-  request<T>(method: HttpMethod, path: string, options?: HttpRequestOptions): Promise<ApiResult<T>>;
+  request<T = unknown>(method: HttpMethod, path: string, options?: HttpRequestOptions): Promise<ApiResult<T>>;
+  get<T = unknown>(path: string, options?: HttpRequestOptions): Promise<ApiResult<T>>;
+  post<T = unknown>(path: string, options?: HttpRequestOptions): Promise<ApiResult<T>>;
+  put<T = unknown>(path: string, options?: HttpRequestOptions): Promise<ApiResult<T>>;
+  patch<T = unknown>(path: string, options?: HttpRequestOptions): Promise<ApiResult<T>>;
+  delete<T = unknown>(path: string, options?: HttpRequestOptions): Promise<ApiResult<T>>;
   download(path: string, options?: HttpRequestOptions): Promise<FileResult>;
 }
 
@@ -153,6 +158,26 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
         message: envelope?.message ?? null,
         traceId: envelope?.traceId ?? null,
       };
+    },
+
+    get<T = unknown>(path: string, request?: HttpRequestOptions): Promise<ApiResult<T>> {
+      return this.request<T>('get', path, request);
+    },
+
+    post<T = unknown>(path: string, request?: HttpRequestOptions): Promise<ApiResult<T>> {
+      return this.request<T>('post', path, request);
+    },
+
+    put<T = unknown>(path: string, request?: HttpRequestOptions): Promise<ApiResult<T>> {
+      return this.request<T>('put', path, request);
+    },
+
+    patch<T = unknown>(path: string, request?: HttpRequestOptions): Promise<ApiResult<T>> {
+      return this.request<T>('patch', path, request);
+    },
+
+    delete<T = unknown>(path: string, request?: HttpRequestOptions): Promise<ApiResult<T>> {
+      return this.request<T>('delete', path, request);
     },
 
     async download(path: string, request: HttpRequestOptions = {}): Promise<FileResult> {

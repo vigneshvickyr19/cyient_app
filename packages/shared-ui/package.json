@@ -7,7 +7,6 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./admin": "./src/admin/index.ts",
     "./test": "./src/test/index.tsx"
   },
   "scripts": {

@@ -4,7 +4,7 @@ import { formatDateTime, humanize } from '@cyient/shared-utils';
 import { Tab, Tabs } from '@mui/material';
 import { keepPreviousData, useQuery, type QueryKey } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
-import { adminPermissions } from '../admin/permissions';
+import { platformPermissions } from '../auth/permissions';
 import { RequirePermission } from '../auth/RequirePermission';
 import { errorMessage } from '../errors/errorMessage';
 import { SectionCard, StatusChip } from './display';
@@ -179,17 +179,17 @@ export function RecordHistoryTabs({ loaders, queryKey, formatStage, extraTabs = 
         ))}
       </Tabs>
       {current === 'history' && (
-        <RequirePermission anyOf={[adminPermissions.audit]}>
+        <RequirePermission anyOf={[platformPermissions.audit]}>
           <HistoryTab loaders={loaders} queryKey={queryKey} formatStage={formatStage} />
         </RequirePermission>
       )}
       {current === 'emails' && (
-        <RequirePermission anyOf={[adminPermissions.emails]}>
+        <RequirePermission anyOf={[platformPermissions.emails]}>
           <EmailsTab loaders={loaders} queryKey={queryKey} />
         </RequirePermission>
       )}
       {current === 'audit' && (
-        <RequirePermission anyOf={[adminPermissions.audit]}>
+        <RequirePermission anyOf={[platformPermissions.audit]}>
           <AuditTab loaders={loaders} queryKey={queryKey} />
         </RequirePermission>
       )}
