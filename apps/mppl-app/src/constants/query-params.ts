@@ -1,0 +1,25 @@
+export const QUERY_PARAMS = {
+  PAGE: 'page',
+  PAGE_SIZE: 'pageSize',
+  SORT: 'sort',
+  DESC: 'desc',
+  TAB: 'tab',
+  LIST: 'list',
+  SEARCH: 'search',
+  PROJECT: 'project',
+  COMMODITY: 'commodity',
+  ISSUE_TYPE: 'issueType',
+  LEAD: 'lead',
+  LEAD_NAME: 'leadName',
+  RAISED_BY: 'raisedBy',
+  RAISED_BY_NAME: 'raisedByName',
+  PO: 'po',
+  CUSTOMER_GROUP: 'customerGroup',
+  SEGMENT: 'segment',
+  SUPPLIER: 'supplier',
+  INACTIVE: 'inactive',
+  FROM: 'from',
+  TO: 'to',
+} as const;
+
+export type QueryParamKey = (typeof QUERY_PARAMS)[keyof typeof QUERY_PARAMS];

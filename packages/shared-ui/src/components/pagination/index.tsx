@@ -1,4 +1,5 @@
 import type { PageMeta } from '@cyient/api-client';
+import { DEFAULT_PAGE_SIZE_OPTIONS } from '@cyient/shared-utils';
 import { CustomPagination } from './CustomPagination';
 
 export { CustomPagination, type CustomPaginationProps } from './CustomPagination';
@@ -19,7 +20,7 @@ export function Pagination({
   pageSize,
   meta,
   onChange,
-  pageSizeOptions = [10, 20, 50, 100],
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   disabled = false,
 }: PaginationProps) {
   return (

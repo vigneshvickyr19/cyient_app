@@ -1,9 +1,11 @@
 import type { ComplaintListItem } from '@cyient/api-client/cc';
-import { DataTable, Dropdown, ErrorState, errorMessage, FilterBar, PageHeader, SearchField, StatusChip, useListState } from '@cyient/shared-ui';
+import { DataTable, Dropdown, errorMessage, ErrorState, FilterToolbar, PageHeader, StatusChip, useListState } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
-import { isComplaintStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/complaint-status';
+import { isComplaintStatus, STATUS_ACTIONS, statusInfo } from '@/constants/complaint-status';
+import { statusOptions } from '@/constants/static-dropdowns';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useAdminComplaints } from '@/hooks/manage/queries';
 
 interface Filters {
@@ -23,7 +25,7 @@ const columns: GridColDef<ComplaintListItem>[] = [
 /** Every complaint, drafts included, for request administrators. */
 export function ManageComplaintsPage() {
   const navigate = useNavigate();
-  const list = useListState<Filters>(['search', 'status']);
+  const list = useListState<Filters>([QUERY_PARAMS.SEARCH, QUERY_PARAMS.STATUS]);
   const complaints = useAdminComplaints({
     Search: list.filters.search,
     Status: isComplaintStatus(list.filters.status) ? list.filters.status : undefined,
@@ -34,10 +36,13 @@ export function ManageComplaintsPage() {
   return (
     <>
       <PageHeader title="All complaints (administration)" subtitle="Every external complaint, drafts included: cancel it and see its full history" />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <SearchField value={list.filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} />
-        <Dropdown label="Status" options={statusOptions} value={isComplaintStatus(list.filters.status) ? list.filters.status : null} emptyLabel="Any status" onChange={(status) => { list.setFilters({ status: status ?? undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['status']} searchName="search">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Status" options={statusOptions} value={isComplaintStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { change({ status: status ?? undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
       {complaints.isError ? (
         <ErrorState message={errorMessage(complaints.error)} onRetry={() => void complaints.refetch()} />
       ) : (

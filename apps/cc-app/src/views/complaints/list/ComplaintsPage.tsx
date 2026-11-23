@@ -1,15 +1,17 @@
 import type { ComplaintListItem, ComplaintScope, ComplaintSort } from '@cyient/api-client/cc';
-import { DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterBar, LinkButton, type Option, PageHeader, PeoplePicker, SearchField, SegmentedTabs, StatusChip, toNumber, useAuth, useListState, useMasterOptions } from '@cyient/shared-ui';
+import { DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterToolbar, LinkButton, PageHeader, PeoplePicker, personOf, SegmentedTabs, StatusChip, Tab, toNumber, useAuth, useListState, useMasterOptions } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import AddIcon from '@mui/icons-material/Add';
-import { Box, Tab } from '@mui/material';
+import { Box } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { masterTypes } from '@/constants/masters';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import type { ComplaintListQuery } from '@/types/complaints';
 import { useComplaintList } from '@/hooks/complaints/queries';
-import { isComplaintStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/complaint-status';
+import { isComplaintStatus, STATUS_ACTIONS, statusInfo } from '@/constants/complaint-status';
+import { criticalOptions, statusOptions } from '@/constants/static-dropdowns';
 
 interface Filters {
   scope?: string;
@@ -23,7 +25,17 @@ interface Filters {
   to?: string;
 }
 
-const filterNames = ['scope', 'search', 'status', 'customer', 'critical', 'initiator', 'initiatorName', 'from', 'to'] as const;
+const filterNames = [
+  QUERY_PARAMS.SCOPE,
+  QUERY_PARAMS.SEARCH,
+  QUERY_PARAMS.STATUS,
+  QUERY_PARAMS.CUSTOMER,
+  QUERY_PARAMS.CRITICAL,
+  QUERY_PARAMS.INITIATOR,
+  QUERY_PARAMS.INITIATOR_NAME,
+  QUERY_PARAMS.FROM,
+  QUERY_PARAMS.TO,
+] as const;
 
 /** Grid columns the API can sort by, and its name for each. */
 const sortFields: Record<string, ComplaintSort> = {
@@ -31,11 +43,6 @@ const sortFields: Record<string, ComplaintSort> = {
   complaintDate: 'ComplaintDate',
   status: 'Status',
 };
-
-const criticalOptions: Option<'yes' | 'no'>[] = [
-  { value: 'yes', label: 'Critical' },
-  { value: 'no', label: 'Not critical' },
-];
 
 const columns: GridColDef<ComplaintListItem>[] = [
   { field: 'complaintNo', headerName: 'Complaint no', minWidth: 140, valueGetter: (_, row) => row.complaintNo ?? STATUS_ACTIONS.DRAFT },
@@ -110,26 +117,24 @@ export function ComplaintsPage() {
         </SegmentedTabs>
       )}
 
-      <FilterBar
-        active={list.filtered && filterNames.some((name) => name !== 'scope' && Boolean(filters[name]))}
-        onClear={() => {
-          list.setFilters({ search: undefined, status: undefined, customer: undefined, critical: undefined, initiator: undefined, initiatorName: undefined, from: undefined, to: undefined });
-        }}
-      >
-        <SearchField value={filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="Complaint no, part no, description…" />
-        <Dropdown label="Status" options={statusOptions} value={isComplaintStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { list.setFilters({ status: status ?? undefined }); }} />
-        <Dropdown label="Customer" options={customers} value={toNumber(filters.customer) ?? null} emptyLabel="Any customer" onChange={(id) => { list.setFilters({ customer: id?.toString() }); }} />
-        <Dropdown label="Critical" options={criticalOptions} value={critical} emptyLabel="Any" onChange={(value) => { list.setFilters({ critical: value ?? undefined }); }} />
-        <Box sx={{ minWidth: 220 }}>
-          <PeoplePicker
-            label="Initiator"
-            value={initiatorId ? { id: initiatorId, name: filters.initiatorName ?? '' } : null}
-            onChange={(person) => { list.setFilters({ initiator: person?.id.toString(), initiatorName: person?.name }); }}
-          />
-        </Box>
-        <DateField label="Complaint date from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { list.setFilters({ from: from ?? undefined }); }} />
-        <DateField label="Complaint date to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { list.setFilters({ to: to ?? undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['status', 'customer', 'critical', 'initiator', 'initiatorName', 'from', 'to']} helperFields={['initiatorName']} searchName="search" searchPlaceholder="Complaint no, part no, description…">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Status" options={statusOptions} value={isComplaintStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { change({ status: status ?? undefined }); }} />
+            <Dropdown label="Customer" options={customers} value={toNumber(filters.customer) ?? null} emptyLabel="Any customer" onChange={(id) => { change({ customer: id?.toString() }); }} />
+            <Dropdown label="Critical" options={criticalOptions} value={filters.critical === 'yes' || filters.critical === 'no' ? filters.critical : null} emptyLabel="Any" onChange={(value) => { change({ critical: value ?? undefined }); }} />
+            <Box sx={{ minWidth: 220 }}>
+              <PeoplePicker
+                label="Initiator"
+                value={personOf(filters.initiator, filters.initiatorName)}
+                onChange={(person) => { change({ initiator: person?.id.toString(), initiatorName: person?.name }); }}
+              />
+            </Box>
+            <DateField label="Complaint date from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { change({ from: from ?? undefined }); }} />
+            <DateField label="Complaint date to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { change({ to: to ?? undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
 
       {complaints.isError ? (
         <ErrorState message={errorMessage(complaints.error)} onRetry={() => void complaints.refetch()} />

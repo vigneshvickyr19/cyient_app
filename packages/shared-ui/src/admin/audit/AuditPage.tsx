@@ -1,5 +1,5 @@
 import type { AuditAction, AuditEntry } from '@cyient/api-client/platform';
-import { formatDateTime, humanize } from '@cyient/shared-utils';
+import { formatDateTime, humanize, QUERY_PARAMS } from '@cyient/shared-utils';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import type { GridColDef } from '@mui/x-data-grid';
 import { Button } from '../../index';
@@ -7,7 +7,8 @@ import { DataTable } from '../../index';
 import { ErrorState } from '../../index';
 import { Dropdown } from '../../index';
 import { PageHeader } from '../../index';
-import { FilterBar, SearchField } from '../../index';
+import { FilterToolbar } from '../../index';
+import { Input } from '../../index';
 import { errorMessage } from '../../index';
 import { useListState } from '../../index';
 import { DateRangeFilter, orUndefined, toInt, UserFilter } from '../shared/filters';
@@ -32,7 +33,15 @@ const columns: readonly GridColDef<AuditEntry>[] = [
 
 /** Recorded changes, newest first, with filters and an Excel export of the same filters. */
 export default function AuditPage() {
-  const list = useListState<AuditFilters>(['table', 'record', 'userId', 'userName', 'action', 'from', 'to']);
+  const list = useListState<AuditFilters>([
+    QUERY_PARAMS.TABLE,
+    QUERY_PARAMS.RECORD,
+    QUERY_PARAMS.USER_ID,
+    QUERY_PARAMS.USER_NAME,
+    QUERY_PARAMS.ACTION,
+    QUERY_PARAMS.FROM,
+    QUERY_PARAMS.TO,
+  ]);
   const { filters } = list;
   const download = useAuditExport();
 
@@ -64,34 +73,39 @@ export default function AuditPage() {
           </Button>
         }
       />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <SearchField
-          label="Table"
-          placeholder="For example platform.Role"
-          value={filters.table ?? ''}
-          onSearch={(table) => {
-            list.setFilters({ table });
-          }}
-        />
-        <SearchField
-          label="Record ID"
-          value={filters.record ?? ''}
-          onSearch={(record) => {
-            list.setFilters({ record });
-          }}
-        />
-        <UserFilter userId={filters.userId} userName={filters.userName} onChange={list.setFilters} />
-        <Dropdown<AuditAction>
-          label="Action"
-          value={isAction(filters.action) ? filters.action : null}
-          options={actions.map((action) => ({ value: action, label: humanize(action) }))}
-          emptyLabel="Any action"
-          onChange={(action) => {
-            list.setFilters({ action: action ?? undefined });
-          }}
-        />
-        <DateRangeFilter from={filters.from} to={filters.to} onChange={list.setFilters} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['table', 'record', 'userId', 'userName', 'action', 'from', 'to']} helperFields={['userName']}>
+        {(filters, change) => (
+          <>
+            <Input
+              label="Table"
+              placeholder="For example platform.Role"
+              value={filters.table ?? ''}
+              onChange={(table) => {
+                change({ table });
+              }}
+            />
+            <Input
+              label="Record ID"
+              value={filters.record ?? ''}
+              onChange={(record) => {
+                change({ record });
+              }}
+            />
+            <UserFilter userId={filters.userId} userName={filters.userName} onChange={change} />
+            <Dropdown<AuditAction>
+              label="Action"
+              value={isAction(filters.action) ? filters.action : null}
+              options={actions.map((action) => ({ value: action, label: humanize(action) }))}
+              emptyLabel="Any action"
+              onChange={(action) => {
+                change({ action: action ?? undefined });
+              }}
+            />
+            <DateRangeFilter from={filters.from} to={filters.to} onChange={change} />
+      
+          </>
+        )}
+      </FilterToolbar>
       {audit.isError ? (
         <ErrorState title="We couldn't load the audit trail" message={errorMessage(audit.error)} onRetry={() => void audit.refetch()} />
       ) : (

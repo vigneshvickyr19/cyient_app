@@ -10,7 +10,6 @@ import {
   Modal,
   SectionCard,
   SimpleTable,
-  type Option,
   type SimpleColumn,
 } from '@cyient/shared-ui';
 import { maxLength, required } from '@cyient/shared-utils';
@@ -21,6 +20,7 @@ import { IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useDeleteClause, useSaveClause } from '@/hooks/requests/mutations';
+import { CLAUSE_CHANGE_TYPE_OPTIONS } from '@/constants/static-dropdowns';
 
 interface ClauseFormValues {
   clauseNo: string;
@@ -28,12 +28,6 @@ interface ClauseFormValues {
   currentContent: string;
   amendedContent: string;
 }
-
-const changeTypes: Option<ClauseChangeType>[] = [
-  { value: 'Addition', label: 'Addition' },
-  { value: 'Amendment', label: 'Amendment' },
-  { value: 'Deletion', label: 'Deletion' },
-];
 
 /** The API's clause rules: amended content for an addition or amendment, current content for an amendment or deletion. */
 const needsCurrent = (type: ClauseChangeType | null) => type === 'Amendment' || type === 'Deletion';
@@ -103,7 +97,7 @@ function ClauseDialog({ publicId, clause, onClose }: { publicId: string; clause:
           <FormRadioGroup<ClauseFormValues, ClauseChangeType>
             name="changeType"
             label="Change"
-            options={changeTypes}
+            options={CLAUSE_CHANGE_TYPE_OPTIONS}
             rules={{ required: 'Addition, Amendment or Deletion is required.' }}
           />
           {needsCurrent(changeType) && (

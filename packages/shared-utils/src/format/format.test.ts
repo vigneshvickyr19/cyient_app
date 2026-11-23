@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { formatCurrency, formatFileSize, formatNumber, humanize, initials, numberOrNull, textOrNull } from './format';
+import {
+  EMPTY_CELL_FALLBACK,
+  formatCellValue,
+  formatCurrency,
+  formatFileSize,
+  formatNumber,
+  humanize,
+  initials,
+  isCellEmpty,
+  numberOrNull,
+  textOrNull,
+} from './format';
 
 describe('format', () => {
   it('humanizes enum names and phrases', () => {
@@ -35,5 +46,33 @@ describe('format', () => {
     expect(textOrNull('  a  ')).toBe('a');
     expect(numberOrNull('   ')).toBeNull();
     expect(numberOrNull('42')).toBe(42);
+  });
+
+  it('formats cell values with standard fallback -- for null, undefined, and empty values', () => {
+    expect(EMPTY_CELL_FALLBACK).toBe('--');
+    expect(isCellEmpty(null)).toBe(true);
+    expect(isCellEmpty(undefined)).toBe(true);
+    expect(isCellEmpty('')).toBe(true);
+    expect(isCellEmpty('   ')).toBe(true);
+    expect(isCellEmpty('null')).toBe(true);
+    expect(isCellEmpty('undefined')).toBe(true);
+    expect(isCellEmpty('-')).toBe(true);
+    expect(isCellEmpty(NaN)).toBe(true);
+    expect(isCellEmpty([])).toBe(true);
+
+    expect(isCellEmpty('Valid text')).toBe(false);
+    expect(isCellEmpty(0)).toBe(false);
+    expect(isCellEmpty(false)).toBe(false);
+    expect(isCellEmpty([1])).toBe(false);
+
+    expect(formatCellValue(null)).toBe('--');
+    expect(formatCellValue(undefined)).toBe('--');
+    expect(formatCellValue('')).toBe('--');
+    expect(formatCellValue('   ')).toBe('--');
+    expect(formatCellValue('null')).toBe('--');
+    expect(formatCellValue('undefined')).toBe('--');
+    expect(formatCellValue('ICC/2026/0001')).toBe('ICC/2026/0001');
+    expect(formatCellValue(0)).toBe('0');
+    expect(formatCellValue(13)).toBe('13');
   });
 });

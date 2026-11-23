@@ -1,18 +1,19 @@
 import type { NoteListItem, NoteSort, NoteType, NoteView } from '@cyient/api-client/ecn';
-import { Button, DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterBar, LinkButton, PageHeader, PeoplePicker, SearchField, SegmentedTabs, StatusChip, toNumber, useAuth, useFileDownload, useListState, useMasterOptions } from '@cyient/shared-ui';
+import { Button, DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterToolbar, LinkButton, PageHeader, PeoplePicker, personOf, SegmentedTabs, StatusChip, Tab, toNumber, useAuth, useFileDownload, useListState, useMasterOptions } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import AddIcon from '@mui/icons-material/Add';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
-import { Tab } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { exportNotes } from '@/api-callers/notes/note.api';
 import { useEcnApi } from '@/hooks/useEcnApi';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useCustomerOptions } from '@/hooks/masters/queries';
 import type { NoteListQuery } from '@/types/notes';
 import { useNoteList } from '@/hooks/notes/queries';
-import { isEcnKind, isNoteStatus, isNoteType, kindLabels, kindOptions, openStatusOptions, statusInfo, statusOptions, typeLabels } from '@/constants/note-status';
+import { isEcnKind, isNoteStatus, isNoteType, kindLabels, statusInfo, typeLabels } from '@/constants/note-status';
+import { kindOptions, openStatusOptions, statusOptions } from '@/constants/static-dropdowns';
 
 interface Filters {
   type?: string;
@@ -28,7 +29,19 @@ interface Filters {
   to?: string;
 }
 
-const filterNames = ['type', 'search', 'customer', 'status', 'kind', 'category1', 'category2', 'initiator', 'initiatorName', 'from', 'to'] as const;
+const filterNames = [
+  QUERY_PARAMS.TYPE,
+  QUERY_PARAMS.SEARCH,
+  QUERY_PARAMS.CUSTOMER,
+  QUERY_PARAMS.STATUS,
+  QUERY_PARAMS.KIND,
+  QUERY_PARAMS.CATEGORY_1,
+  QUERY_PARAMS.CATEGORY_2,
+  QUERY_PARAMS.INITIATOR,
+  QUERY_PARAMS.INITIATOR_NAME,
+  QUERY_PARAMS.FROM,
+  QUERY_PARAMS.TO,
+] as const;
 
 /** Grid columns the API can sort by, and its name for each. */
 const sortFields: Record<string, NoteSort> = {
@@ -117,7 +130,7 @@ export function NotesPage({ view }: { view: NoteView }) {
               </Button>
             )}
             {can(permissions.create) && (
-              <LinkButton variant="contained" startIcon={<AddIcon />} to={type ? `/notes/new?type=${type}` : '/notes/new'}>
+              <LinkButton variant="contained" startIcon={<AddIcon />} to={type ? `/notes/new?${QUERY_PARAMS.TYPE}=${type}` : '/notes/new'}>
                 {type ? `New ${typeLabels[type]}` : 'New ECN or TCN'}
               </LinkButton>
             )}
@@ -138,38 +151,34 @@ export function NotesPage({ view }: { view: NoteView }) {
         <Tab value="Tcn" label="TCNs" />
       </SegmentedTabs>
 
-      <FilterBar
-        active={filtered}
-        onClear={() => { list.setFilters(Object.fromEntries(searchFilters.map((name) => [name, undefined]))); }}
-      >
-        <SearchField
-          value={filters.search ?? ''}
-          onSearch={(search) => { list.setFilters({ search }); }}
-          placeholder="Number, product, customer, summary…"
-        />
-        <Dropdown label="Customer" options={customers} value={toNumber(filters.customer) ?? null} emptyLabel="Any customer" onChange={(id) => { list.setFilters({ customer: id?.toString() }); }} />
-        {view !== 'Closed' && (
-          <Dropdown
-            label="Status"
-            options={view === 'InProgress' ? openStatusOptions : statusOptions}
-            value={isNoteStatus(filters.status) ? filters.status : null}
-            emptyLabel="Any status"
-            onChange={(status) => { list.setFilters({ status: status ?? undefined }); }}
-          />
+      <FilterToolbar list={list} fields={['customer', 'status', 'kind', 'category1', 'category2', 'initiator', 'initiatorName', 'from', 'to']} helperFields={['initiatorName']} searchName="search" searchPlaceholder="Number, product, customer, summary…">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Customer" options={customers} value={toNumber(filters.customer) ?? null} emptyLabel="Any customer" onChange={(id) => { change({ customer: id?.toString() }); }} />
+            {view !== 'Closed' && (
+              <Dropdown
+                label="Status"
+                options={view === 'InProgress' ? openStatusOptions : statusOptions}
+                value={isNoteStatus(filters.status) ? filters.status : null}
+                emptyLabel="Any status"
+                onChange={(status) => { change({ status: status ?? undefined }); }}
+              />
+            )}
+            {type !== 'Tcn' && (
+              <Dropdown label="Cyient ECN type" options={kindOptions} value={isEcnKind(filters.kind) ? filters.kind : null} emptyLabel="SAP or Non-SAP" onChange={(kind) => { change({ kind: kind ?? undefined }); }} />
+            )}
+            <Dropdown label="Category 1" options={categories1} value={toNumber(filters.category1) ?? null} emptyLabel="Any" onChange={(id) => { change({ category1: id?.toString() }); }} />
+            <Dropdown label="Category 2" options={categories2} value={toNumber(filters.category2) ?? null} emptyLabel="Any" onChange={(id) => { change({ category2: id?.toString() }); }} />
+            <PeoplePicker
+              label="Initiated by"
+              value={personOf(filters.initiator, filters.initiatorName)}
+              onChange={(person) => { change({ initiator: person?.id.toString(), initiatorName: person?.name }); }}
+            />
+            <DateField label="Created from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { change({ from: from ?? undefined }); }} />
+            <DateField label="Created to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { change({ to: to ?? undefined }); }} />
+          </>
         )}
-        {type !== 'Tcn' && (
-          <Dropdown label="Cyient ECN type" options={kindOptions} value={isEcnKind(filters.kind) ? filters.kind : null} emptyLabel="SAP or Non-SAP" onChange={(kind) => { list.setFilters({ kind: kind ?? undefined }); }} />
-        )}
-        <Dropdown label="Category 1" options={categories1} value={toNumber(filters.category1) ?? null} emptyLabel="Any" onChange={(id) => { list.setFilters({ category1: id?.toString() }); }} />
-        <Dropdown label="Category 2" options={categories2} value={toNumber(filters.category2) ?? null} emptyLabel="Any" onChange={(id) => { list.setFilters({ category2: id?.toString() }); }} />
-        <PeoplePicker
-          label="Initiated by"
-          value={initiatorId ? { id: initiatorId, name: filters.initiatorName ?? '' } : null}
-          onChange={(person) => { list.setFilters({ initiator: person?.id.toString(), initiatorName: person?.name }); }}
-        />
-        <DateField label="Created from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { list.setFilters({ from: from ?? undefined }); }} />
-        <DateField label="Created to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { list.setFilters({ to: to ?? undefined }); }} />
-      </FilterBar>
+      </FilterToolbar>
 
       {notes.isError ? (
         <ErrorState message={errorMessage(notes.error)} onRetry={() => void notes.refetch()} />

@@ -1,20 +1,11 @@
 import type { RequestListItem } from '@cyient/api-client/dn';
-import {
-  DataTable,
-  Dropdown,
-  ErrorState,
-  errorMessage,
-  FilterBar,
-  PageHeader,
-  SearchField,
-  StatusChip,
-  useListState,
-  useMasterOptions,
-} from '@cyient/shared-ui';
+import { DataTable, Dropdown, errorMessage, ErrorState, FilterToolbar, PageHeader, StatusChip, useListState, useMasterOptions } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
-import { isDnStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/request-status';
+import { isDnStatus, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
+import { statusOptions } from '@/constants/static-dropdowns';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useAdminRequests } from '@/hooks/manage/queries';
 
 interface Filters {
@@ -37,7 +28,7 @@ const columns: GridColDef<RequestListItem>[] = [
 /** Every deviation, drafts included, for request administrators. */
 export function ManageRequestsPage() {
   const navigate = useNavigate();
-  const list = useListState<Filters>(['search', 'status', 'category']);
+  const list = useListState<Filters>([QUERY_PARAMS.SEARCH, QUERY_PARAMS.STATUS, QUERY_PARAMS.CATEGORY]);
   const categories = useMasterOptions('ChangeCategory');
   const category = list.filters.category ? Number(list.filters.category) : undefined;
   const requests = useAdminRequests({
@@ -51,11 +42,14 @@ export function ManageRequestsPage() {
   return (
     <>
       <PageHeader title="All requests (administration)" subtitle="Every deviation, drafts included: close it, change its people and see its full history" />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <SearchField value={list.filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="Request no, W.O no, product FG no…" />
-        <Dropdown label="Status" options={statusOptions} value={isDnStatus(list.filters.status) ? list.filters.status : null} emptyLabel="Any status" onChange={(status) => { list.setFilters({ status: status ?? undefined }); }} />
-        <Dropdown label="Change category" options={categories} value={category ?? null} emptyLabel="Any category" onChange={(id) => { list.setFilters({ category: id?.toString() }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['status', 'category']} searchName="search" searchPlaceholder="Request no, W.O no, product FG no…">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Status" options={statusOptions} value={isDnStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { change({ status: status ?? undefined }); }} />
+            <Dropdown label="Change category" options={categories} value={category ?? null} emptyLabel="Any category" onChange={(id) => { change({ category: id?.toString() }); }} />
+          </>
+        )}
+      </FilterToolbar>
       {requests.isError ? (
         <ErrorState message={errorMessage(requests.error)} onRetry={() => void requests.refetch()} />
       ) : (

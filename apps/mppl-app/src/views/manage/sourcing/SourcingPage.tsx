@@ -1,25 +1,11 @@
 import type { SourcingDetails } from '@cyient/api-client/mppl';
-import {
-  Button,
-  CheckboxField,
-  DataTable,
-  Dropdown,
-  ErrorState,
-  errorMessage,
-  FilterBar,
-  PageHeader,
-  PeoplePicker,
-  SearchField,
-  StatusChip,
-  toNumber,
-  useListState,
-  useMasterOptions,
-} from '@cyient/shared-ui';
+import { Button, CheckboxField, DataTable, Dropdown, errorMessage, ErrorState, FilterToolbar, PageHeader, PeoplePicker, personOf, StatusChip, toNumber, useListState, useMasterOptions } from '@cyient/shared-ui';
 import AddIcon from '@mui/icons-material/Add';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { IconButton, Tooltip } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useState } from 'react';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useSourcingList } from '@/hooks/sourcing/queries';
 import { SourcingDialog } from '@/views/manage/sourcing/SourcingForm';
 
@@ -32,7 +18,14 @@ interface Filters {
   inactive?: string;
 }
 
-const filterNames = ['search', 'project', 'commodity', 'lead', 'leadName', 'inactive'] as const;
+const filterNames = [
+  QUERY_PARAMS.SEARCH,
+  QUERY_PARAMS.PROJECT,
+  QUERY_PARAMS.COMMODITY,
+  QUERY_PARAMS.LEAD,
+  QUERY_PARAMS.LEAD_NAME,
+  QUERY_PARAMS.INACTIVE,
+] as const;
 
 /** The sourcing master: the Sourcing Lead, escalation levels and engineers of each project (and commodity). */
 export function SourcingPage() {
@@ -94,17 +87,20 @@ export function SourcingPage() {
           </Button>
         }
       />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <SearchField value={filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="Customer or customer group" />
-        <Dropdown label="Project" options={projects} value={toNumber(filters.project) ?? null} emptyLabel="Any project" onChange={(id) => { list.setFilters({ project: id?.toString() }); }} />
-        <Dropdown label="Commodity" options={commodities} value={toNumber(filters.commodity) ?? null} emptyLabel="Any commodity" onChange={(id) => { list.setFilters({ commodity: id?.toString() }); }} />
-        <PeoplePicker
-          label="Sourcing Lead"
-          value={filters.lead ? { id: Number(filters.lead), name: filters.leadName ?? '' } : null}
-          onChange={(lead) => { list.setFilters({ lead: lead?.id.toString(), leadName: lead?.name }); }}
-        />
-        <CheckboxField label="Switched-off rows too" checked={filters.inactive === 'true'} onChange={(inactive) => { list.setFilters({ inactive: inactive ? 'true' : undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['project', 'commodity', 'lead', 'leadName', 'inactive']} helperFields={['leadName']} searchName="search" searchPlaceholder="Customer or customer group">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Project" options={projects} value={toNumber(filters.project) ?? null} emptyLabel="Any project" onChange={(id) => { change({ project: id?.toString() }); }} />
+            <Dropdown label="Commodity" options={commodities} value={toNumber(filters.commodity) ?? null} emptyLabel="Any commodity" onChange={(id) => { change({ commodity: id?.toString() }); }} />
+            <PeoplePicker
+              label="Sourcing Lead"
+              value={personOf(filters.lead, filters.leadName)}
+              onChange={(lead) => { change({ lead: lead?.id.toString(), leadName: lead?.name }); }}
+            />
+            <CheckboxField label="Switched-off rows too" checked={filters.inactive === 'true'} onChange={(inactive) => { change({ inactive: inactive ? 'true' : undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
       {rows.isError ? (
         <ErrorState message={errorMessage(rows.error)} onRetry={() => void rows.refetch()} />
       ) : (

@@ -1,13 +1,13 @@
 import type { IssueListItem, IssueSort } from '@cyient/api-client/mppl';
-import { Button, DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterBar, LinkButton, PageHeader, PeoplePicker, type PersonOption, SearchField, SegmentedTabs, toNumber, useAuth, useFileDownload, useListState, useMasterOptions } from '@cyient/shared-ui';
+import { Button, DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterToolbar, Input, LinkButton, PageHeader, PeoplePicker, personOf, SegmentedTabs, Tab, toNumber, useAuth, useFileDownload, useListState, useMasterOptions } from '@cyient/shared-ui';
 import AddIcon from '@mui/icons-material/Add';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
-import { Tab } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { exportIssues } from '@/api-callers/issues/issue.api';
 import { useMpplApi } from '@/hooks/useMpplApi';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { issueColumns, landingColumns } from '@/components/issues/columns';
 import type { IssueListQuery } from '@/types/issues';
 import { useIssueList } from '@/hooks/issues/queries';
@@ -32,21 +32,21 @@ interface Filters {
 }
 
 const filterNames = [
-  'list',
-  'search',
-  'project',
-  'commodity',
-  'issueType',
-  'lead',
-  'leadName',
-  'raisedBy',
-  'raisedByName',
-  'po',
-  'customerGroup',
-  'segment',
-  'supplier',
-  'from',
-  'to',
+  QUERY_PARAMS.LIST,
+  QUERY_PARAMS.SEARCH,
+  QUERY_PARAMS.PROJECT,
+  QUERY_PARAMS.COMMODITY,
+  QUERY_PARAMS.ISSUE_TYPE,
+  QUERY_PARAMS.LEAD,
+  QUERY_PARAMS.LEAD_NAME,
+  QUERY_PARAMS.RAISED_BY,
+  QUERY_PARAMS.RAISED_BY_NAME,
+  QUERY_PARAMS.PO,
+  QUERY_PARAMS.CUSTOMER_GROUP,
+  QUERY_PARAMS.SEGMENT,
+  QUERY_PARAMS.SUPPLIER,
+  QUERY_PARAMS.FROM,
+  QUERY_PARAMS.TO,
 ] as const;
 
 /** Grid columns the API can sort by, and its name for each. */
@@ -69,8 +69,6 @@ const tabText: Record<IssueTab, { subtitle: string; empty: string }> = {
   Fixed: { subtitle: 'Issues the Sourcing Lead has closed', empty: 'No fixed issues' },
   Drafts: { subtitle: 'Issues you have saved but not yet submitted', empty: 'You have no drafts' },
 };
-
-const person = (id: string | undefined, name: string | undefined): PersonOption | null => (id ? { id: Number(id), name: name ?? '' } : null);
 
 /** Open Issues (the landing page), Fixed Issues and My drafts: search, filter, sort, open an issue and export to Excel. */
 export function IssuesPage() {
@@ -143,48 +141,31 @@ export function IssuesPage() {
         {canCreate && <Tab value={STATUS_ACTIONS.DRAFTS} label="My drafts" />}
       </SegmentedTabs>
 
-      <FilterBar
-        active={filtered}
-        onClear={() => {
-          list.setFilters({
-            search: undefined,
-            project: undefined,
-            commodity: undefined,
-            issueType: undefined,
-            lead: undefined,
-            leadName: undefined,
-            raisedBy: undefined,
-            raisedByName: undefined,
-            po: undefined,
-            customerGroup: undefined,
-            segment: undefined,
-            supplier: undefined,
-            from: undefined,
-            to: undefined,
-          });
-        }}
-      >
-        <SearchField value={filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="PO, part number, supplier, MPN…" />
-        <Dropdown label="Project" options={projects} value={toNumber(filters.project) ?? null} emptyLabel="Any project" onChange={(id) => { list.setFilters({ project: id?.toString() }); }} />
-        <Dropdown label="Commodity" options={commodities} value={toNumber(filters.commodity) ?? null} emptyLabel="Any commodity" onChange={(id) => { list.setFilters({ commodity: id?.toString() }); }} />
-        <Dropdown label="Issue" options={issueTypes} value={toNumber(filters.issueType) ?? null} emptyLabel="Any issue" onChange={(id) => { list.setFilters({ issueType: id?.toString() }); }} />
-        <PeoplePicker
-          label="Sourcing Lead"
-          value={person(filters.lead, filters.leadName)}
-          onChange={(lead) => { list.setFilters({ lead: lead?.id.toString(), leadName: lead?.name }); }}
-        />
-        <PeoplePicker
-          label="Raised by"
-          value={person(filters.raisedBy, filters.raisedByName)}
-          onChange={(buyer) => { list.setFilters({ raisedBy: buyer?.id.toString(), raisedByName: buyer?.name }); }}
-        />
-        <SearchField label="PO number" value={filters.po ?? ''} onSearch={(po) => { list.setFilters({ po }); }} placeholder="The whole PO number" />
-        <SearchField label="Customer group" value={filters.customerGroup ?? ''} onSearch={(customerGroup) => { list.setFilters({ customerGroup }); }} />
-        <SearchField label="Segment" value={filters.segment ?? ''} onSearch={(segment) => { list.setFilters({ segment }); }} />
-        <SearchField label="Supplier" value={filters.supplier ?? ''} onSearch={(supplier) => { list.setFilters({ supplier }); }} />
-        <DateField label="Raised from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { list.setFilters({ from: from ?? undefined }); }} />
-        <DateField label="Raised to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { list.setFilters({ to: to ?? undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['project', 'commodity', 'issueType', 'lead', 'leadName', 'raisedBy', 'raisedByName', 'po', 'customerGroup', 'segment', 'supplier', 'from', 'to']} helperFields={['leadName', 'raisedByName']} searchName="search" searchPlaceholder="PO, part number, supplier, MPN…">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Project" options={projects} value={toNumber(filters.project) ?? null} emptyLabel="Any project" onChange={(id) => { change({ project: id?.toString() }); }} />
+            <Dropdown label="Commodity" options={commodities} value={toNumber(filters.commodity) ?? null} emptyLabel="Any commodity" onChange={(id) => { change({ commodity: id?.toString() }); }} />
+            <Dropdown label="Issue" options={issueTypes} value={toNumber(filters.issueType) ?? null} emptyLabel="Any issue" onChange={(id) => { change({ issueType: id?.toString() }); }} />
+            <PeoplePicker
+              label="Sourcing Lead"
+              value={personOf(filters.lead, filters.leadName)}
+              onChange={(lead) => { change({ lead: lead?.id.toString(), leadName: lead?.name }); }}
+            />
+            <PeoplePicker
+              label="Raised by"
+              value={personOf(filters.raisedBy, filters.raisedByName)}
+              onChange={(buyer) => { change({ raisedBy: buyer?.id.toString(), raisedByName: buyer?.name }); }}
+            />
+            <Input label="PO number" value={filters.po ?? ''} onChange={(po) => { change({ po }); }} placeholder="The whole PO number" />
+            <Input label="Customer group" value={filters.customerGroup ?? ''} onChange={(customerGroup) => { change({ customerGroup }); }} />
+            <Input label="Segment" value={filters.segment ?? ''} onChange={(segment) => { change({ segment }); }} />
+            <Input label="Supplier" value={filters.supplier ?? ''} onChange={(supplier) => { change({ supplier }); }} />
+            <DateField label="Raised from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { change({ from: from ?? undefined }); }} />
+            <DateField label="Raised to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { change({ to: to ?? undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
 
       {issues.isError ? (
         <ErrorState message={errorMessage(issues.error)} onRetry={() => void issues.refetch()} />

@@ -3,6 +3,8 @@ import { DataTable, ErrorState, errorMessage, PageHeader, StatusChip, useListSta
 import { daysSince, formatDate, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
+import { COMPLAINT_DETAIL_SECTIONS } from '@/constants/tab-sections';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { usePendingComplaints } from '@/hooks/complaints/queries';
 
@@ -38,7 +40,7 @@ export function PendingPage() {
           pageSize={list.pageSize}
           meta={pending.data?.meta}
           onPageChange={(page, pageSize) => { list.setPage(page, pageSize); }}
-          onRowClick={(row) => void navigate(`/complaints/${row.publicId}${row.actionId === null ? '' : '?tab=d5'}`)}
+          onRowClick={(row) => void navigate(`/complaints/${row.publicId}${row.actionId === null ? '' : `?${QUERY_PARAMS.TAB}=${COMPLAINT_DETAIL_SECTIONS.D5}`}`)}
           emptyTitle="Nothing is waiting for you"
           emptyMessage="Actions you own and complaints you need to close will appear here."
         />

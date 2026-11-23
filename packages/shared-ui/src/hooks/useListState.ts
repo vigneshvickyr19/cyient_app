@@ -1,3 +1,4 @@
+import { PAGINATION_DEFAULTS, QUERY_PARAMS } from '@cyient/shared-utils';
 import { useSearchParams } from 'react-router';
 
 /** A list's filters: each an optional string, as in the address (for example `interface Filters { status?: string }`). */
@@ -27,12 +28,12 @@ export interface ListState<F extends FilterValues<F>> {
  */
 export function useListState<F extends FilterValues<F>>(filterNames: readonly (keyof F & string)[], defaults: { pageSize?: number } = {}): ListState<F> {
   const [params, setParams] = useSearchParams();
-  const defaultPageSize = defaults.pageSize ?? 20;
+  const defaultPageSize = defaults.pageSize ?? PAGINATION_DEFAULTS.DEFAULT_PER_PAGE;
 
-  const page = Math.max(1, Number(params.get('page')) || 1);
-  const pageSize = Number(params.get('pageSize')) || defaultPageSize;
-  const sortField = params.get('sort');
-  const sort = sortField ? { field: sortField, descending: params.get('desc') === 'true' } : null;
+  const page = Math.max(PAGINATION_DEFAULTS.DEFAULT_CUR_PAGE, Number(params.get(QUERY_PARAMS.PAGE)) || PAGINATION_DEFAULTS.DEFAULT_CUR_PAGE);
+  const pageSize = Number(params.get(QUERY_PARAMS.PAGE_SIZE)) || defaultPageSize;
+  const sortField = params.get(QUERY_PARAMS.SORT);
+  const sort = sortField ? { field: sortField, descending: params.get(QUERY_PARAMS.DESC) === 'true' } : null;
   const filters = Object.fromEntries(filterNames.map((name) => [name, params.get(name) ?? undefined])) as F;
 
   const update = (change: (next: URLSearchParams) => void) => {
@@ -54,19 +55,19 @@ export function useListState<F extends FilterValues<F>>(filterNames: readonly (k
     filtered: filterNames.some((name) => Boolean(filters[name])),
     setPage: (nextPage, nextPageSize) => {
       update((next) => {
-        next.set('page', String(nextPage));
-        if (nextPageSize && nextPageSize !== defaultPageSize) next.set('pageSize', String(nextPageSize));
-        else if (nextPageSize) next.delete('pageSize');
+        next.set(QUERY_PARAMS.PAGE, String(nextPage));
+        if (nextPageSize && nextPageSize !== defaultPageSize) next.set(QUERY_PARAMS.PAGE_SIZE, String(nextPageSize));
+        else if (nextPageSize) next.delete(QUERY_PARAMS.PAGE_SIZE);
       });
     },
     setSort: (nextSort) => {
       update((next) => {
         if (nextSort) {
-          next.set('sort', nextSort.field);
-          next.set('desc', String(nextSort.descending));
+          next.set(QUERY_PARAMS.SORT, nextSort.field);
+          next.set(QUERY_PARAMS.DESC, String(nextSort.descending));
         } else {
-          next.delete('sort');
-          next.delete('desc');
+          next.delete(QUERY_PARAMS.SORT);
+          next.delete(QUERY_PARAMS.DESC);
         }
       });
     },
@@ -76,13 +77,13 @@ export function useListState<F extends FilterValues<F>>(filterNames: readonly (k
           if (typeof value === 'string' && value !== '') next.set(name, value);
           else next.delete(name);
         }
-        next.delete('page');
+        next.delete(QUERY_PARAMS.PAGE);
       });
     },
     clearFilters: () => {
       update((next) => {
         for (const name of filterNames) next.delete(name);
-        next.delete('page');
+        next.delete(QUERY_PARAMS.PAGE);
       });
     },
   };

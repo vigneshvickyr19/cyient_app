@@ -1,5 +1,5 @@
 import type { ActionStatus, ComplaintDetails, ComplaintStatus } from '@cyient/api-client/cc';
-import type { Option, Tone } from '@cyient/shared-ui';
+import type { Tone } from '@cyient/shared-ui';
 import { STATUS_ACTIONS } from './status-actions';
 
 export { STATUS_ACTIONS };
@@ -21,11 +21,6 @@ export const actionStatusInfo: Record<ActionStatus, { label: string; tone: Tone 
   [STATUS_ACTIONS.OPEN]: { label: 'Open', tone: 'warning' },
   [STATUS_ACTIONS.CLOSED]: { label: 'Closed', tone: 'success' },
 };
-
-export const statusOptions: Option<ComplaintStatus>[] = (Object.keys(statusInfo) as ComplaintStatus[]).map((value) => ({
-  value,
-  label: statusInfo[value].label,
-}));
 
 export const isComplaintStatus = (value: string | undefined): value is ComplaintStatus => value !== undefined && value in statusInfo;
 

@@ -27,7 +27,8 @@ import { downloadAttachment } from '@/api-callers/notes/attachment.api';
 import { useEcnApi } from '@/hooks/useEcnApi';
 import { toDocumentItems } from '@/utils/attachments';
 import { useUpdateCftAction } from '@/hooks/notes/mutations';
-import { actionStatusInfo, actionStatusOptions, isOpenAction, STATUS_ACTIONS } from '@/constants/note-status';
+import { actionStatusInfo, isOpenAction, STATUS_ACTIONS } from '@/constants/note-status';
+import { actionStatusOptions } from '@/constants/static-dropdowns';
 import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 
 interface CftActionFormValues {

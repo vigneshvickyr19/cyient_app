@@ -1,17 +1,18 @@
 import type { RequestListItem, RequestScope, RequestSort } from '@cyient/api-client/dn';
-import { Button, DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterBar, LinkButton, PageHeader, PeoplePicker, SearchField, SegmentedTabs, StatusChip, toNumber, useAuth, useFileDownload, useListState, useMasterOptions } from '@cyient/shared-ui';
+import { Button, DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterToolbar, LinkButton, PageHeader, PeoplePicker, personOf, SegmentedTabs, StatusChip, Tab, toNumber, useAuth, useFileDownload, useListState, useMasterOptions } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import AddIcon from '@mui/icons-material/Add';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
-import { Tab } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { exportRequests } from '@/api-callers/requests/request.api';
 import { useDnApi } from '@/hooks/useDnApi';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import type { RequestListQuery } from '@/types/requests';
 import { useRequestList } from '@/hooks/requests/queries';
-import { isDnStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/request-status';
+import { isDnStatus, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
+import { statusOptions } from '@/constants/static-dropdowns';
 
 interface Filters {
   scope?: string;
@@ -27,7 +28,19 @@ interface Filters {
   to?: string;
 }
 
-const filterNames = ['scope', 'search', 'status', 'category', 'customer', 'unit', 'department', 'initiator', 'initiatorName', 'from', 'to'] as const;
+const filterNames = [
+  QUERY_PARAMS.SCOPE,
+  QUERY_PARAMS.SEARCH,
+  QUERY_PARAMS.STATUS,
+  QUERY_PARAMS.CATEGORY,
+  QUERY_PARAMS.CUSTOMER,
+  QUERY_PARAMS.UNIT,
+  QUERY_PARAMS.DEPARTMENT,
+  QUERY_PARAMS.INITIATOR,
+  QUERY_PARAMS.INITIATOR_NAME,
+  QUERY_PARAMS.FROM,
+  QUERY_PARAMS.TO,
+] as const;
 
 /** Grid columns the API can sort by, and its name for each. */
 const sortFields: Record<string, RequestSort> = {
@@ -121,39 +134,26 @@ export function RequestsPage() {
         </SegmentedTabs>
       )}
 
-      <FilterBar
-        active={filtered}
-        onClear={() => {
-          list.setFilters({
-            search: undefined,
-            status: undefined,
-            category: undefined,
-            customer: undefined,
-            unit: undefined,
-            department: undefined,
-            initiator: undefined,
-            initiatorName: undefined,
-            from: undefined,
-            to: undefined,
-          });
-        }}
-      >
-        <SearchField value={filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="Request no, W.O no, product FG no…" />
-        <Dropdown label="Status" options={statusOptions} value={isDnStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { list.setFilters({ status: status ?? undefined }); }} />
-        <Dropdown label="Change category" options={categories} value={toNumber(filters.category) ?? null} emptyLabel="Any category" onChange={(id) => { list.setFilters({ category: id?.toString() }); }} />
-        <Dropdown label="Customer" options={customers} value={toNumber(filters.customer) ?? null} emptyLabel="Any customer" onChange={(id) => { list.setFilters({ customer: id?.toString() }); }} />
-        <Dropdown label="Unit" options={units} value={toNumber(filters.unit) ?? null} emptyLabel="Any unit" onChange={(id) => { list.setFilters({ unit: id?.toString() }); }} />
-        <Dropdown label="Initiator department" options={departments} value={toNumber(filters.department) ?? null} emptyLabel="Any department" onChange={(id) => { list.setFilters({ department: id?.toString() }); }} />
-        {scope === 'All' && (
-          <PeoplePicker
-            label="Initiator"
-            value={initiatorId ? { id: initiatorId, name: filters.initiatorName ?? '' } : null}
-            onChange={(person) => { list.setFilters({ initiator: person?.id.toString(), initiatorName: person?.name }); }}
-          />
+      <FilterToolbar list={list} fields={['status', 'category', 'customer', 'unit', 'department', 'initiator', 'initiatorName', 'from', 'to']} helperFields={['initiatorName']} searchName="search" searchPlaceholder="Request no, W.O no, product FG no…">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Status" options={statusOptions} value={isDnStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { change({ status: status ?? undefined }); }} />
+            <Dropdown label="Change category" options={categories} value={toNumber(filters.category) ?? null} emptyLabel="Any category" onChange={(id) => { change({ category: id?.toString() }); }} />
+            <Dropdown label="Customer" options={customers} value={toNumber(filters.customer) ?? null} emptyLabel="Any customer" onChange={(id) => { change({ customer: id?.toString() }); }} />
+            <Dropdown label="Unit" options={units} value={toNumber(filters.unit) ?? null} emptyLabel="Any unit" onChange={(id) => { change({ unit: id?.toString() }); }} />
+            <Dropdown label="Initiator department" options={departments} value={toNumber(filters.department) ?? null} emptyLabel="Any department" onChange={(id) => { change({ department: id?.toString() }); }} />
+            {scope === 'All' && (
+              <PeoplePicker
+                label="Initiator"
+                value={personOf(filters.initiator, filters.initiatorName)}
+                onChange={(person) => { change({ initiator: person?.id.toString(), initiatorName: person?.name }); }}
+              />
+            )}
+            <DateField label="Date from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { change({ from: from ?? undefined }); }} />
+            <DateField label="Date to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { change({ to: to ?? undefined }); }} />
+          </>
         )}
-        <DateField label="Date from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { list.setFilters({ from: from ?? undefined }); }} />
-        <DateField label="Date to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { list.setFilters({ to: to ?? undefined }); }} />
-      </FilterBar>
+      </FilterToolbar>
 
       {requests.isError ? (
         <ErrorState message={errorMessage(requests.error)} onRetry={() => void requests.refetch()} />

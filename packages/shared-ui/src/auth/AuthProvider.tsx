@@ -91,7 +91,13 @@ export function AuthProvider({ session, children }: { session: AuthSession; chil
   }
 
   if (!me.data) {
-    return <PageLoader label="Signing you in…" fullPage />;
+    return (
+      <PageLoader
+        label="Signing you in…"
+        subtitle="Verifying your credentials and preparing your workspace…"
+        fullPage
+      />
+    );
   }
 
   const user = me.data;

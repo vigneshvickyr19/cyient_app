@@ -1,9 +1,11 @@
 import type { RequestListItem } from '@cyient/api-client/dcr';
-import { DataTable, Dropdown, ErrorState, errorMessage, FilterBar, PageHeader, SearchField, StatusChip, useListState } from '@cyient/shared-ui';
+import { DataTable, Dropdown, errorMessage, ErrorState, FilterToolbar, PageHeader, StatusChip, useListState } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
-import { isDcrStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/request-status';
+import { isDcrStatus, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
+import { statusOptions } from '@/constants/static-dropdowns';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useAdminRequests } from '@/hooks/manage/queries';
 
 interface Filters {
@@ -22,7 +24,7 @@ const columns: GridColDef<RequestListItem>[] = [
 /** Every request, drafts included, for request administrators. */
 export function ManageRequestsPage() {
   const navigate = useNavigate();
-  const list = useListState<Filters>(['search', 'status']);
+  const list = useListState<Filters>([QUERY_PARAMS.SEARCH, QUERY_PARAMS.STATUS]);
   const requests = useAdminRequests({
     Search: list.filters.search,
     Status: isDcrStatus(list.filters.status) ? list.filters.status : undefined,
@@ -33,10 +35,13 @@ export function ManageRequestsPage() {
   return (
     <>
       <PageHeader title="All requests (administration)" subtitle="Every DCR, drafts included: cancel, correct and see its full history" />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <SearchField value={list.filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} />
-        <Dropdown label="Status" options={statusOptions} value={isDcrStatus(list.filters.status) ? list.filters.status : null} emptyLabel="Any status" onChange={(status) => { list.setFilters({ status: status ?? undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['status']} searchName="search">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Status" options={statusOptions} value={isDcrStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { change({ status: status ?? undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
       {requests.isError ? (
         <ErrorState message={errorMessage(requests.error)} onRetry={() => void requests.refetch()} />
       ) : (

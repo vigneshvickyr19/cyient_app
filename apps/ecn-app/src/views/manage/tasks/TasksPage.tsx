@@ -1,20 +1,13 @@
-import type { NoteStatus, OpenTaskItem } from '@cyient/api-client/ecn';
-import { DataTable, Dropdown, ErrorState, errorMessage, FilterBar, Input, PageHeader, StatusChip, useAuth, useListState, type Option } from '@cyient/shared-ui';
+import type { OpenTaskItem } from '@cyient/api-client/ecn';
+import { DataTable, Dropdown, errorMessage, ErrorState, FilterToolbar, Input, PageHeader, StatusChip, useAuth, useListState } from '@cyient/shared-ui';
 import { daysSince, formatDate, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { manageNotePermissions } from '@/constants/permissions';
-import { isNoteStatus, stageLabel, STATUS_ACTIONS, statusInfo } from '@/constants/note-status';
+import { QUERY_PARAMS } from '@/constants/query-params';
+import { isNoteStatus, stageLabel, statusInfo } from '@/constants/note-status';
+import { stageOptions } from '@/constants/static-dropdowns';
 import { useOpenTasks } from '@/hooks/manage/queries';
-
-/** The stages that have tasks, and who holds each. */
-const stageOptions: Option<NoteStatus>[] = [
-  { value: STATUS_ACTIONS.CFT_REVIEW, label: 'CFT Review (CFT members)' },
-  { value: STATUS_ACTIONS.CFT_CLOSED, label: 'CFT Actions Closed (initiator)' },
-  { value: STATUS_ACTIONS.REVIEWER_REVIEW, label: 'Reviewer Review' },
-  { value: STATUS_ACTIONS.APPROVER_REVIEW, label: 'Approver Review' },
-  { value: STATUS_ACTIONS.APPROVED, label: 'Approved (release by ECN admins)' },
-];
 
 interface Filters {
   stage?: string;
@@ -43,7 +36,7 @@ export function TasksPage() {
   const navigate = useNavigate();
   const { canAny } = useAuth();
   const noteAddress = (publicId: string) => (canAny(...manageNotePermissions) ? `/manage/notes/${publicId}` : `/notes/${publicId}`);
-  const list = useListState<Filters>(['stage', 'minDays']);
+  const list = useListState<Filters>([QUERY_PARAMS.STAGE, QUERY_PARAMS.MIN_DAYS]);
   const tasks = useOpenTasks({
     Stage: isNoteStatus(list.filters.stage) ? list.filters.stage : undefined,
     MinDaysWaiting: list.filters.minDays ? Number(list.filters.minDays) : undefined,
@@ -54,22 +47,26 @@ export function TasksPage() {
   return (
     <>
       <PageHeader title="Open tasks" subtitle="CFT actions, reviews, approvals and releases waiting for someone, longest waiting first" />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <Dropdown
-          label="Stage"
-          options={stageOptions}
-          value={isNoteStatus(list.filters.stage) ? list.filters.stage : null}
-          emptyLabel="Any stage"
-          onChange={(stage) => { list.setFilters({ stage: stage ?? undefined }); }}
-        />
-        <Input
-          label="Waiting at least (days)"
-          type="number"
-          value={list.filters.minDays ?? ''}
-          onChange={(minDays) => { list.setFilters({ minDays }); }}
-          slotProps={{ htmlInput: { min: 0 } }}
-        />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['stage', 'minDays']}>
+        {(filters, change) => (
+          <>
+            <Dropdown
+              label="Stage"
+              options={stageOptions}
+              value={isNoteStatus(filters.stage) ? filters.stage : null}
+              emptyLabel="Any stage"
+              onChange={(stage) => { change({ stage: stage ?? undefined }); }}
+            />
+            <Input
+              label="Waiting at least (days)"
+              type="number"
+              value={filters.minDays ?? ''}
+              onChange={(minDays) => { change({ minDays }); }}
+              slotProps={{ htmlInput: { min: 0 } }}
+            />
+          </>
+        )}
+      </FilterToolbar>
       {tasks.isError ? (
         <ErrorState message={errorMessage(tasks.error)} onRetry={() => void tasks.refetch()} />
       ) : (

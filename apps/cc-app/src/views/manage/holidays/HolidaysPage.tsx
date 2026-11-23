@@ -1,30 +1,14 @@
 import { isApiError } from '@cyient/api-client';
 import type { HolidayDetails } from '@cyient/api-client/cc';
-import {
-  applyServerErrors,
-  Button,
-  Dropdown,
-  ErrorState,
-  errorMessage,
-  FilterBar,
-  Form,
-  FormCheckbox,
-  FormDatePicker,
-  FormInput,
-  Modal,
-  PageHeader,
-  SectionCard,
-  SectionSkeleton,
-  SimpleTable,
-  StatusChip,
-  useListState,
-  } from '@cyient/shared-ui';
+import { applyServerErrors, Button, Dropdown, errorMessage, ErrorState, FilterToolbar, Form, FormCheckbox, FormDatePicker, FormInput, Modal, PageHeader, SectionCard, SectionSkeleton, SimpleTable, StatusChip, useListState } from '@cyient/shared-ui';
 import { businessToday, formatDate, maxLength } from '@cyient/shared-utils';
 import AddIcon from '@mui/icons-material/Add';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { IconButton, Stack, Tooltip } from '@mui/material';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { QUERY_PARAMS } from '@/constants/query-params';
+import { getYearOptions } from '@/constants/static-dropdowns';
 import { useHolidays, useSaveHoliday } from '@/hooks/manage/queries';
 
 interface HolidayValues {
@@ -104,12 +88,12 @@ const currentYear = () => Number(businessToday().slice(0, 4));
 
 /** The holiday calendar by year: add a day, change it or switch it off (days are never deleted). */
 export function HolidaysPage() {
-  const list = useListState<{ year?: string }>(['year']);
+  const list = useListState<{ year?: string }>([QUERY_PARAMS.YEAR]);
   const thisYear = currentYear();
   const year = Number(list.filters.year) || thisYear;
   const holidays = useHolidays(year);
   const [editing, setEditing] = useState<HolidayDetails | 'new' | null>(null);
-  const years = Array.from({ length: 5 }, (_, i) => thisYear - 2 + i).map((value) => ({ value, label: String(value) }));
+  const years = getYearOptions(thisYear);
 
   return (
     <>
@@ -122,9 +106,13 @@ export function HolidaysPage() {
           </Button>
         }
       />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <Dropdown label="Year" options={years} value={year} onChange={(value) => { list.setFilters({ year: value === null || value === thisYear ? undefined : String(value) }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['year']}>
+        {(_, change) => (
+          <>
+            <Dropdown label="Year" options={years} value={year} onChange={(value) => { change({ year: value === null || value === thisYear ? undefined : String(value) }); }} />
+          </>
+        )}
+      </FilterToolbar>
       <SectionCard title={`Holidays in ${year}`} flush>
         {holidays.isPending ? (
           <SectionSkeleton />

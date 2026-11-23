@@ -1,3 +1,4 @@
+import { DEFAULT_PAGE_SIZE_OPTIONS } from '@cyient/shared-utils';
 import * as React from 'react';
 import {
   Box,
@@ -31,7 +32,7 @@ export const CustomPagination: React.FC<CustomPaginationProps> = ({
   totalCount,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 50, 100],
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   disabled = false,
   showRecordsCount = true,
   showPageSizeSelect = true,

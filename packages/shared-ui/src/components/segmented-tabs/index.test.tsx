@@ -1,8 +1,7 @@
-import { Tab } from '@mui/material';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { SegmentedTabs } from './index';
+import { SegmentedTabs, Tab } from './index';
 
 describe('SegmentedTabs', () => {
   it('is a tab list that reports the segment the user picks', async () => {

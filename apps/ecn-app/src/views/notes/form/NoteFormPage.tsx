@@ -4,6 +4,8 @@ import { useCreateDraft, useUpdateDraft, useUploadAttachment } from '@/hooks/not
 import { type PendingUpload, NoteForm } from '@/views/notes/form/NoteForm';
 import { useNote } from '@/hooks/notes/queries';
 import { isNoteType, typeLabels } from '@/constants/note-status';
+import { QUERY_PARAMS } from '@/constants/query-params';
+import { NOTE_DETAIL_SECTIONS } from '@/constants/tab-sections';
 
 /**
  * Uploads the documents chosen on the form once the draft is saved. A failed upload doesn't undo the draft: the user
@@ -33,7 +35,7 @@ export function NewNotePage() {
   const [params] = useSearchParams();
   const create = useCreateDraft();
   const uploads = useUploadAll();
-  const typeParam = params.get('type');
+  const typeParam = params.get(QUERY_PARAMS.TYPE);
   const type = isNoteType(typeParam) ? typeParam : null;
   const title = type ? `New ${typeLabels[type]}` : 'New ECN or TCN';
 
@@ -52,7 +54,7 @@ export function NewNotePage() {
         onSave={async (draft, files) => {
           const note = await create.mutateAsync(draft);
           const uploaded = await uploads.run(note.publicId, files);
-          await navigate(`/notes/${note.publicId}${uploaded ? '?tab=team' : '?tab=attachments'}`);
+          await navigate(`/notes/${note.publicId}${uploaded ? `?${QUERY_PARAMS.TAB}=${NOTE_DETAIL_SECTIONS.TEAM}` : `?${QUERY_PARAMS.TAB}=${NOTE_DETAIL_SECTIONS.ATTACHMENTS}`}`);
         }}
       />
     </>
@@ -89,7 +91,7 @@ export function EditNotePage() {
           onSave={async (draft, files) => {
             await update.mutateAsync(draft);
             const uploaded = await uploads.run(publicId, files);
-            await navigate(`/notes/${publicId}${uploaded ? '' : '?tab=attachments'}`);
+            await navigate(`/notes/${publicId}${uploaded ? '' : `?${QUERY_PARAMS.TAB}=${NOTE_DETAIL_SECTIONS.ATTACHMENTS}`}`);
           }}
         />
       ) : (

@@ -54,3 +54,42 @@ export const textOrNull = (value: string): string | null => value.trim() || null
 
 /** A number typed into a field, or null when it is empty. */
 export const numberOrNull = (value: string): number | null => (value.trim() === '' ? null : Number(value));
+
+/** Standard fallback string for empty, null, or undefined table cells. */
+export const EMPTY_CELL_FALLBACK = '--';
+
+/**
+ * Checks whether a value is considered empty, null, undefined, or unavailable.
+ */
+export function isCellEmpty(value: unknown): boolean {
+  if (value === null || value === undefined) {
+    return true;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return (
+      trimmed === '' ||
+      trimmed.toLowerCase() === 'null' ||
+      trimmed.toLowerCase() === 'undefined' ||
+      trimmed === '-'
+    );
+  }
+  if (typeof value === 'number') {
+    return Number.isNaN(value);
+  }
+  if (Array.isArray(value)) {
+    return value.length === 0;
+  }
+  return false;
+}
+
+/**
+ * Formats a value for display in table cells.
+ * Returns '--' whenever a value is null, undefined, empty, or unavailable instead of showing blank spaces.
+ */
+export function formatCellValue(value: unknown, fallback: string = EMPTY_CELL_FALLBACK): string {
+  if (isCellEmpty(value)) {
+    return fallback;
+  }
+  return String(value);
+}

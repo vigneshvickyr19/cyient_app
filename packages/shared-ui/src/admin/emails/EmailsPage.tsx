@@ -1,5 +1,5 @@
 import type { EmailListItem, EmailStatus } from '@cyient/api-client/platform';
-import { formatDateTime } from '@cyient/shared-utils';
+import { formatDateTime, QUERY_PARAMS } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { StatusChip } from '../../index';
@@ -7,7 +7,8 @@ import { DataTable } from '../../index';
 import { ErrorState } from '../../index';
 import { Dropdown } from '../../index';
 import { PageHeader } from '../../index';
-import { FilterBar, SearchField } from '../../index';
+import { FilterToolbar } from '../../index';
+import { Input } from '../../index';
 import { errorMessage } from '../../index';
 import { useListState } from '../../index';
 import { useAdminPath } from '../shared/AdminBase';
@@ -37,7 +38,14 @@ const columns: readonly GridColDef<EmailListItem>[] = [
 
 /** The emails the system queued, newest first; an email opens its details. */
 export default function EmailsPage() {
-  const list = useListState<EmailFilters>(['status', 'event', 'reference', 'recipient', 'from', 'to']);
+  const list = useListState<EmailFilters>([
+    QUERY_PARAMS.STATUS,
+    QUERY_PARAMS.EVENT,
+    QUERY_PARAMS.REFERENCE,
+    QUERY_PARAMS.RECIPIENT,
+    QUERY_PARAMS.FROM,
+    QUERY_PARAMS.TO,
+  ]);
   const { filters } = list;
   const navigate = useNavigate();
   const adminPath = useAdminPath();
@@ -56,42 +64,47 @@ export default function EmailsPage() {
   return (
     <>
       <PageHeader title="Email log" subtitle="Every email the system queued: who it went to, whether it was sent, and why not." />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <Dropdown<EmailStatus>
-          label="Status"
-          value={isStatus(filters.status) ? filters.status : null}
-          options={emailStatuses.map((status) => ({ value: status, label: status }))}
-          emptyLabel="Any status"
-          onChange={(status) => {
-            list.setFilters({ status: status ?? undefined });
-          }}
-        />
-        <SearchField
-          label="Event"
-          placeholder="For example Submitted"
-          value={filters.event ?? ''}
-          onSearch={(event) => {
-            list.setFilters({ event });
-          }}
-        />
-        <SearchField
-          label="Reference ID"
-          placeholder="The request's ID"
-          value={filters.reference ?? ''}
-          onSearch={(reference) => {
-            list.setFilters({ reference: reference.replace(/\D/g, '') });
-          }}
-        />
-        <SearchField
-          label="Recipient"
-          placeholder="Part of an email address"
-          value={filters.recipient ?? ''}
-          onSearch={(recipient) => {
-            list.setFilters({ recipient });
-          }}
-        />
-        <DateRangeFilter from={filters.from} to={filters.to} onChange={list.setFilters} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['status', 'event', 'reference', 'recipient', 'from', 'to']}>
+        {(filters, change) => (
+          <>
+            <Dropdown<EmailStatus>
+              label="Status"
+              value={isStatus(filters.status) ? filters.status : null}
+              options={emailStatuses.map((status) => ({ value: status, label: status }))}
+              emptyLabel="Any status"
+              onChange={(status) => {
+                change({ status: status ?? undefined });
+              }}
+            />
+            <Input
+              label="Event"
+              placeholder="For example Submitted"
+              value={filters.event ?? ''}
+              onChange={(event) => {
+                change({ event });
+              }}
+            />
+            <Input
+              label="Reference ID"
+              placeholder="The request's ID"
+              value={filters.reference ?? ''}
+              onChange={(reference) => {
+                change({ reference: reference.replace(/\D/g, '') });
+              }}
+            />
+            <Input
+              label="Recipient"
+              placeholder="Part of an email address"
+              value={filters.recipient ?? ''}
+              onChange={(recipient) => {
+                change({ recipient });
+              }}
+            />
+            <DateRangeFilter from={filters.from} to={filters.to} onChange={change} />
+      
+          </>
+        )}
+      </FilterToolbar>
       {emails.isError ? (
         <ErrorState title="We couldn't load the email log" message={errorMessage(emails.error)} onRetry={() => void emails.refetch()} />
       ) : (

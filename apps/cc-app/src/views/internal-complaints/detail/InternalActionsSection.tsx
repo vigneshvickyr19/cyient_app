@@ -13,7 +13,6 @@ import {
   SimpleTable,
   StatusChip,
   useActionFailure,
-  type Option,
   type PersonOption,
   type SimpleColumn,
 } from '@cyient/shared-ui';
@@ -26,6 +25,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ccTags } from '@/api-callers/api-tags';
 import { actionStatusInfo } from '@/constants/complaint-status';
+import { INTERNAL_ACTION_STATUS_OPTIONS } from '@/constants/static-dropdowns';
 import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { useDeleteInternalAction, useSaveInternalAction } from '@/hooks/internal/mutations';
 
@@ -36,11 +36,6 @@ interface InternalActionValues {
   status: ActionStatus;
   remarks: string;
 }
-
-const statuses: Option<ActionStatus>[] = [
-  { value: STATUS_ACTIONS.OPEN, label: 'Open' },
-  { value: STATUS_ACTIONS.CLOSED, label: 'Closed' },
-];
 
 const serverFieldNames = { ownerUserId: 'owner' } as const;
 
@@ -114,7 +109,7 @@ function InternalActionDialog({ publicId, action, onClose }: { publicId: string;
             <FormPeoplePicker<InternalActionValues> name="owner" label="Responsible person" />
             <FormDatePicker<InternalActionValues> name="targetDate" label="Target date" />
           </Box>
-          <FormRadioGroup<InternalActionValues, ActionStatus> name="status" label="Status" options={statuses} rules={required('Status')} />
+          <FormRadioGroup<InternalActionValues, ActionStatus> name="status" label="Status" options={INTERNAL_ACTION_STATUS_OPTIONS} rules={required('Status')} />
           <FormTextArea<InternalActionValues> name="remarks" label="Remarks" minRows={2} rules={maxLength(4000, 'Remarks')} />
         </Stack>
       </Form>

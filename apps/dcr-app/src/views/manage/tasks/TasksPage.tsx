@@ -1,28 +1,16 @@
 import type { DcrStatus, OpenTaskItem } from '@cyient/api-client/dcr';
-import {
-  ConfirmDialog,
-  DataTable,
-  Dropdown,
-  ErrorState,
-  errorMessage,
-  FilterBar,
-  Input,
-  PageHeader,
-  PeoplePicker,
-  StatusChip,
-  useListState,
-  type PersonOption,
-} from '@cyient/shared-ui';
+import { ConfirmDialog, DataTable, Dropdown, errorMessage, ErrorState, FilterToolbar, Input, PageHeader, PeoplePicker, type PersonOption, StatusChip, useListState } from '@cyient/shared-ui';
 import { daysSince, formatDate, formatDateTime } from '@cyient/shared-utils';
 import { Button } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useState } from 'react';
 import { isDcrStatus, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
+import { stageOptions } from '@/constants/static-dropdowns';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useOpenTasks, useReassignTask } from '@/hooks/manage/queries';
 
 /** The stages an administrator can reassign to another person; IMS and MR reviews are held by roles. */
 const reassignable: DcrStatus[] = ['DeptManagerReview', 'DeptHeadReview'];
-const stageOptions = (['ImsReview', 'DeptManagerReview', 'DeptHeadReview', 'MrReview'] as const).map((value) => ({ value, label: statusInfo[value].label }));
 
 interface Filters {
   stage?: string;
@@ -58,7 +46,7 @@ function ReassignDialog({ task, onClose }: { task: OpenTaskItem; onClose: () => 
 
 /** Open reviews, longest waiting first; Dept Manager and Dept Head reviews can be moved to someone else. */
 export function TasksPage() {
-  const list = useListState<Filters>(['stage', 'minDays']);
+  const list = useListState<Filters>([QUERY_PARAMS.STAGE, QUERY_PARAMS.MIN_DAYS]);
   const [reassigning, setReassigning] = useState<OpenTaskItem | null>(null);
   const tasks = useOpenTasks({
     Stage: isDcrStatus(list.filters.stage) ? list.filters.stage : undefined,
@@ -92,10 +80,14 @@ export function TasksPage() {
   return (
     <>
       <PageHeader title="Open reviews" subtitle="Reviews waiting for someone, longest waiting first" />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <Dropdown label="Stage" options={stageOptions} value={isDcrStatus(list.filters.stage) ? list.filters.stage : null} emptyLabel="Any stage" onChange={(stage) => { list.setFilters({ stage: stage ?? undefined }); }} />
-        <Input label="Waiting at least (days)" type="number" value={list.filters.minDays ?? ''} onChange={(minDays) => { list.setFilters({ minDays }); }} slotProps={{ htmlInput: { min: 0 } }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['stage', 'minDays']}>
+        {(filters, change) => (
+          <>
+            <Dropdown label="Stage" options={stageOptions} value={isDcrStatus(filters.stage) ? filters.stage : null} emptyLabel="Any stage" onChange={(stage) => { change({ stage: stage ?? undefined }); }} />
+            <Input label="Waiting at least (days)" type="number" value={filters.minDays ?? ''} onChange={(minDays) => { change({ minDays }); }} slotProps={{ htmlInput: { min: 0 } }} />
+          </>
+        )}
+      </FilterToolbar>
       {tasks.isError ? (
         <ErrorState message={errorMessage(tasks.error)} onRetry={() => void tasks.refetch()} />
       ) : (

@@ -40,6 +40,39 @@ describe('DataTable', () => {
     expect(screen.getByText('Rows per page:')).toBeInTheDocument();
   });
 
+  it('displays -- for null, undefined, empty, or unavailable cell values', () => {
+    interface SparseRow {
+      id: number;
+      name?: string | null;
+      code?: string | null;
+      count?: number | null;
+    }
+    const sparseRows: SparseRow[] = [
+      { id: 1, name: null, code: '', count: undefined },
+      { id: 2, name: 'Valid Name', code: '   ', count: 0 },
+    ];
+    const sparseCols = [
+      { field: 'name', headerName: 'Name', width: 120 },
+      { field: 'code', headerName: 'Code', width: 120 },
+      { field: 'count', headerName: 'Count', width: 120 },
+    ];
+
+    render(
+      <DataTable
+        rows={sparseRows}
+        columns={sparseCols}
+        getRowId={(r) => r.id}
+      />,
+    );
+
+    // Row 1 has 3 empty cells (name: null, code: '', count: undefined)
+    // Row 2 has 1 empty cell (code: '   '), and count: 0 which should be '0'
+    const dashes = screen.getAllByText('--');
+    expect(dashes.length).toBe(4);
+    expect(screen.getByText('Valid Name')).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
+  });
+
   it('handles custom pagination page change', () => {
     const handlePageChange = vi.fn();
     render(
@@ -105,6 +138,47 @@ describe('DataTable', () => {
     // No pagination footer should be rendered
     expect(container.querySelector('.MuiPagination-root')).not.toBeInTheDocument();
     expect(screen.queryByText(/Results/i)).not.toBeInTheDocument();
+  });
+
+  it('renders skeleton rows without circle bar loader when loading is true with empty rows', () => {
+    const { container } = render(
+      <DataTable
+        rows={[]}
+        columns={columns}
+        getRowId={(r: TestRow) => r.id}
+        loading
+        skeletonRows={5}
+      />,
+    );
+
+    // No CircularProgress or LinearProgress bar
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    // No empty state message while loading
+    expect(screen.queryByText('No Data Found')).not.toBeInTheDocument();
+    // Column headers are still visible
+    expect(screen.getByText('Full Name')).toBeInTheDocument();
+    expect(screen.getByText('Designation')).toBeInTheDocument();
+    // Skeleton cells are rendered (5 rows * 3 columns = 15 skeletons)
+    const skeletons = container.querySelectorAll('.MuiSkeleton-root');
+    expect(skeletons.length).toBe(15);
+  });
+
+  it('supports custom skeletonRows count and checkboxSelection skeletons', () => {
+    const { container } = render(
+      <DataTable
+        rows={[]}
+        columns={columns}
+        getRowId={(r: TestRow) => r.id}
+        loading
+        skeletonRows={3}
+        checkboxSelection
+      />,
+    );
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    // 3 rows * (1 checkbox skeleton + 3 column skeletons) = 12 skeletons
+    const skeletons = container.querySelectorAll('.MuiSkeleton-root');
+    expect(skeletons.length).toBe(12);
   });
 
   it('supports sticky columns and frozen columns count', () => {

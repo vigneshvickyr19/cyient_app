@@ -1,5 +1,5 @@
 import type { DnStatus, ReviewerDetails, ReviewerKind, ReviewerStatus } from '@cyient/api-client/dn';
-import type { Option, Tone } from '@cyient/shared-ui';
+import type { Tone } from '@cyient/shared-ui';
 import { STATUS_ACTIONS } from './status-actions';
 
 export { STATUS_ACTIONS };
@@ -31,11 +31,6 @@ export const reviewerKindLabel: Record<ReviewerKind, string> = {
   HeadOfDepartment: 'Head of department',
   FinalApprover: 'Final approver',
 };
-
-export const statusOptions: Option<DnStatus>[] = (Object.keys(statusInfo) as DnStatus[]).map((value) => ({
-  value,
-  label: statusInfo[value].label,
-}));
 
 export const isDnStatus = (value: string | undefined): value is DnStatus => value !== undefined && value in statusInfo;
 

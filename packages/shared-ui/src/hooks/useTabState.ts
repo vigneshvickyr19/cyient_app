@@ -1,3 +1,4 @@
+import { QUERY_PARAMS } from '@cyient/shared-utils';
 import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 
@@ -24,7 +25,7 @@ export interface UseTabStateReturn<T extends string> {
  * Supports browser back/forward navigation and gracefully falls back / redirects on invalid tabs.
  */
 export function useTabState<T extends string>({
-  paramName = 'tab',
+  paramName = QUERY_PARAMS.TAB,
   defaultTab,
   validTabs,
   isValidTab,

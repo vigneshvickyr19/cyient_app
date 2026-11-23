@@ -1,4 +1,4 @@
-import type { AttachmentKind, DraftDetails, EcnKind, FaiRequirement, NoteDetails, NoteType } from '@cyient/api-client/ecn';
+import type { AttachmentKind, DraftDetails, FaiRequirement, NoteDetails, NoteType } from '@cyient/api-client/ecn';
 import {
   applyServerErrors,
   Button,
@@ -15,7 +15,6 @@ import {
   SectionCard,
   useAuth,
   useMasterOptions,
-  type Option,
   type PersonOption,
 } from '@cyient/shared-ui';
 import { businessToday, maxLength, notInFuture, required } from '@cyient/shared-utils';
@@ -26,10 +25,15 @@ import { useForm, useWatch } from 'react-hook-form';
 import { AddCustomerDialog } from '@/components/masters/AddCustomerDialog';
 import { useCustomerOptions } from '@/hooks/masters/queries';
 import { permissions } from '@/constants/permissions';
-import { attachmentExtensions, faiOptions, kindOptions, typeOptions } from '@/constants/note-status';
-
-type Kind = NonNullable<EcnKind>;
-type YesNo = 'Yes' | 'No';
+import { attachmentExtensions } from '@/constants/note-status';
+import {
+  faiOptions,
+  kindOptions,
+  typeOptions,
+  YES_NO_OPTIONS,
+  type Kind,
+  type YesNo,
+} from '@/constants/static-dropdowns';
 
 /** The New ECN / New TCN front page, as the API's draft rules have it (DraftDetailsValidator). */
 export interface NoteFormValues {
@@ -71,11 +75,6 @@ const LONG_TEXT = 4000;
 
 /** RULE-01: the SAP ECN number is the 12-digit 5-series number from SAP. */
 const SAP_NUMBER = /^\s*5\d{11}\s*$/;
-
-const yesNo: Option<YesNo>[] = [
-  { value: 'Yes', label: 'Yes' },
-  { value: 'No', label: 'No' },
-];
 
 function formValuesOf(note: NoteDetails | undefined, type: NoteType | null): NoteFormValues {
   const person = (ref: { id: number; name: string | null } | undefined) => (ref ? { id: ref.id, name: ref.name ?? '' } : null);
@@ -324,7 +323,7 @@ export function NoteForm({ note, type = null, saving, onSave, onCancel }: NoteFo
                 <FormRadioGroup<NoteFormValues, YesNo>
                   name="ecrApprovalFromCustomer"
                   label="ECR approval from customer"
-                  options={yesNo}
+                  options={YES_NO_OPTIONS}
                   rules={required('ECR Approval From Customer')}
                 />
               </Box>

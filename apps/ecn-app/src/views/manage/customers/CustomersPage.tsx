@@ -1,24 +1,6 @@
 import { isApiError } from '@cyient/api-client';
 import type { CustomerDetails } from '@cyient/api-client/ecn';
-import {
-  applyServerErrors,
-  Button,
-  ErrorState,
-  errorMessage,
-  FilterBar,
-  Form,
-  FormCheckbox,
-  FormInput,
-  Modal,
-  PageHeader,
-  SearchField,
-  SectionCard,
-  SectionSkeleton,
-  SimpleTable,
-  StatusChip,
-  useAuth,
-  useListState,
-  } from '@cyient/shared-ui';
+import { applyServerErrors, Button, errorMessage, ErrorState, FilterToolbar, Form, FormCheckbox, FormInput, Modal, PageHeader, SectionCard, SectionSkeleton, SimpleTable, StatusChip, useAuth, useListState } from '@cyient/shared-ui';
 import { maxLength, notBlank, required } from '@cyient/shared-utils';
 import AddIcon from '@mui/icons-material/Add';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -26,6 +8,7 @@ import { IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { AddCustomerDialog } from '@/components/masters/AddCustomerDialog';
 import { useUpdateCustomer } from '@/hooks/masters/mutations';
 import { useCustomers } from '@/hooks/masters/queries';
@@ -91,7 +74,7 @@ function CustomerDialog({ customer, onClose }: { customer: CustomerDetails; onCl
 /** The Customer Name list for ECN admins: rename a customer or switch it off or on. Customers are never deleted. */
 export function CustomersPage() {
   const { can } = useAuth();
-  const list = useListState<{ search?: string }>(['search']);
+  const list = useListState<{ search?: string }>([QUERY_PARAMS.SEARCH]);
   const customers = useCustomers(true);
   const [editing, setEditing] = useState<CustomerDetails | null>(null);
   const [adding, setAdding] = useState(false);
@@ -111,9 +94,7 @@ export function CustomersPage() {
           )
         }
       />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <SearchField value={list.filters.search ?? ''} onSearch={(value) => { list.setFilters({ search: value }); }} placeholder="Customer name" />
-      </FilterBar>
+      <FilterToolbar list={list} fields={[]} searchName="search" searchPlaceholder="Customer name" />
       <SectionCard title="Customers" subheader={customers.data ? `${rows.length} of ${customers.data.length}` : undefined} flush>
         {customers.isPending ? (
           <SectionSkeleton />

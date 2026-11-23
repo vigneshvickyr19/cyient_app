@@ -8,7 +8,8 @@ export interface SearchFieldProps {
   value: string;
   /** Called after typing pauses (debounced), and at once on Enter. */
   onSearch: (value: string) => void;
-  label?: string;
+  /** Shown above the box; null for a search box in a toolbar, where the placeholder says what it searches. */
+  label?: string | null;
   placeholder?: string;
   delayMs?: number;
 }
@@ -34,8 +35,9 @@ export function SearchField({ value, onSearch, label = 'Search', placeholder, de
     // A wider slot than the other filters, so the placeholder is readable; && outranks the bar's own sizing of its children
     <Box sx={{ '&&': { minWidth: { sm: 240 }, flex: { sm: '2 1 260px' } } }}>
       <CustomInput
-        label={label}
+        label={label ?? undefined}
         placeholder={placeholder}
+        slotProps={{ htmlInput: { 'aria-label': label ?? 'Search' } }}
         value={text}
         clearable
         startAdornment={<SearchIcon fontSize="small" />}

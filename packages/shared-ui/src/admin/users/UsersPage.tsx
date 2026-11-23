@@ -1,5 +1,5 @@
 import type { UserListItem } from '@cyient/api-client/platform';
-import { formatDateTime } from '@cyient/shared-utils';
+import { formatDateTime, QUERY_PARAMS } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../index';
@@ -7,7 +7,7 @@ import { DataTable } from '../../index';
 import { ErrorState } from '../../index';
 import { Dropdown } from '../../index';
 import { PageHeader } from '../../index';
-import { FilterBar, SearchField } from '../../index';
+import { FilterToolbar } from '../../index';
 import { errorMessage } from '../../index';
 import { useListState } from '../../index';
 import { adminPermissions } from '../permissions';
@@ -42,7 +42,7 @@ const statusOptions = [
 
 /** People set up in this application, found by name, login or email and filtered by state and role. */
 export default function UsersPage() {
-  const list = useListState<UserFilters>(['search', 'status', 'roleId']);
+  const list = useListState<UserFilters>([QUERY_PARAMS.SEARCH, QUERY_PARAMS.STATUS, QUERY_PARAMS.ROLE_ID]);
   const { can } = useAuth();
   const canSeeRoles = can(adminPermissions.roles);
   const roles = useRoles(canSeeRoles);
@@ -60,38 +60,35 @@ export default function UsersPage() {
   return (
     <>
       <PageHeader title="Users" subtitle="People from Active Directory who are set up in this application." />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <SearchField
-          label="Search"
-          placeholder="Name, login or email"
-          value={list.filters.search ?? ''}
-          onSearch={(search) => {
-            list.setFilters({ search });
-          }}
-        />
-        <Dropdown<string>
-          label="Status"
-          value={list.filters.status ?? null}
-          options={statusOptions}
-          emptyLabel="Any status"
-          onChange={(status) => {
-            list.setFilters({ status: status ?? undefined });
-          }}
-        />
-        {canSeeRoles && (
-          <Dropdown<number>
-            label="Role"
-            value={toInt(list.filters.roleId) ?? null}
-            options={(roles.data ?? []).map((role) => ({ value: role.id, label: role.name }))}
-            emptyLabel="Any role"
-            disabled={!roles.data}
-            helperText={roles.isError ? 'The roles could not be loaded.' : undefined}
-            onChange={(roleId) => {
-              list.setFilters({ roleId: roleId === null ? undefined : String(roleId) });
-            }}
-          />
+      <FilterToolbar list={list} fields={['status', 'roleId']} searchName="search" searchPlaceholder="Name, login or email">
+        {(filters, change) => (
+          <>
+            <Dropdown<string>
+              label="Status"
+              value={filters.status ?? null}
+              options={statusOptions}
+              emptyLabel="Any status"
+              onChange={(status) => {
+                change({ status: status ?? undefined });
+              }}
+            />
+            {canSeeRoles && (
+              <Dropdown<number>
+                label="Role"
+                value={toInt(filters.roleId) ?? null}
+                options={(roles.data ?? []).map((role) => ({ value: role.id, label: role.name }))}
+                emptyLabel="Any role"
+                disabled={!roles.data}
+                helperText={roles.isError ? 'The roles could not be loaded.' : undefined}
+                onChange={(roleId) => {
+                  change({ roleId: roleId === null ? undefined : String(roleId) });
+                }}
+              />
+            )}
+      
+          </>
         )}
-      </FilterBar>
+      </FilterToolbar>
       {users.isError ? (
         <ErrorState title="We couldn't load the users" message={errorMessage(users.error)} onRetry={() => void users.refetch()} />
       ) : (

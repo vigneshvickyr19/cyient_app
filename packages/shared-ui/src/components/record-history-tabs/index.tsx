@@ -1,7 +1,6 @@
 import type { PageMeta } from '@cyient/api-client';
 import type { AuditEntry, EmailListItem, HistoryEntry } from '@cyient/api-client/platform';
 import { formatDateTime, humanize } from '@cyient/shared-utils';
-import { Tab, Tabs } from '@mui/material';
 import { keepPreviousData, useQuery, type QueryKey } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { platformPermissions } from '../../auth/permissions';
@@ -11,11 +10,13 @@ import { SectionCard, StatusChip } from '../display';
 import { ErrorState } from '../error-state';
 import { SectionSkeleton } from '../loader';
 import { Pagination } from '../pagination';
+import { SegmentedTabs, Tab } from '../segmented-tabs';
 import { SimpleTable } from '../simple-table';
+import { PAGINATION_DEFAULTS } from '@cyient/shared-utils';
 import { recordTags } from '../../api/api-tags';
 
 /** Emails and audit records are read 20 at a time. */
-export const recordPageSize = 20;
+export const recordPageSize = PAGINATION_DEFAULTS.RECORD_PAGE_SIZE;
 
 /** One page of a list, as the API's typed client returns it. */
 export interface RecordPage<Row> {
@@ -161,7 +162,7 @@ export function RecordHistoryTabs({ loaders, queryKey, formatStage, extraTabs = 
 
   return (
     <SectionCard title="Record" flush>
-      <Tabs
+      <SegmentedTabs
         value={current}
         onChange={(_, value: string) => {
           if (onTabChange) onTabChange(value);
@@ -170,7 +171,7 @@ export function RecordHistoryTabs({ loaders, queryKey, formatStage, extraTabs = 
         aria-label="Record"
         variant="scrollable"
         allowScrollButtonsMobile
-        sx={{ px: 2 }}
+        sx={{ m: 2 }}
       >
         <Tab value="history" label="History" />
         <Tab value="emails" label="Emails" />
@@ -178,7 +179,7 @@ export function RecordHistoryTabs({ loaders, queryKey, formatStage, extraTabs = 
         {extraTabs.map((item) => (
           <Tab key={item.value} value={item.value} label={item.label} />
         ))}
-      </Tabs>
+      </SegmentedTabs>
       {current === 'history' && (
         <RequirePermission anyOf={[platformPermissions.audit]}>
           <HistoryTab loaders={loaders} queryKey={queryKey} formatStage={formatStage} />

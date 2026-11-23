@@ -1,11 +1,15 @@
-import { Tabs, type TabsProps } from '@mui/material';
+import { Tab, Tabs, type TabProps, type TabsProps } from '@mui/material';
 import { sxList } from '../sxArray';
 
+export type SegmentedTabsProps = Omit<TabsProps, 'slotProps'>;
+export type { TabProps };
+export { Tab, Tab as CustomTab };
+
 /**
- * The views of one list as joined, bordered segments with the open one filled, for example "All requests" and "My
- * requests". Used with MUI's Tab children, so it stays a tab list for keyboards and screen readers.
+ * The views of one list or record as joined, bordered segments with the open one filled, for example "All requests" and "My
+ * requests", or record detail sections. Used with Tab children, so it stays a tab list for keyboards and screen readers.
  */
-export function SegmentedTabs({ sx, ...props }: Omit<TabsProps, 'slotProps'>) {
+export function SegmentedTabs({ sx, ...props }: SegmentedTabsProps) {
   return (
     <Tabs
       {...props}
@@ -28,6 +32,7 @@ export function SegmentedTabs({ sx, ...props }: Omit<TabsProps, 'slotProps'>) {
             '&:not(:last-of-type)': { borderRight: 1, borderColor: 'divider' },
             '&:hover': { bgcolor: 'action.hover' },
             '&.Mui-selected': { color: 'primary.main', bgcolor: 'rgb(var(--mui-palette-primary-mainChannel) / 0.12)' },
+            '&.Mui-disabled': { opacity: 0.45 },
           },
         },
         ...sxList(sx),
@@ -35,3 +40,6 @@ export function SegmentedTabs({ sx, ...props }: Omit<TabsProps, 'slotProps'>) {
     />
   );
 }
+
+export { SegmentedTabs as Tabs, SegmentedTabs as CustomTabs };
+

@@ -1,7 +1,8 @@
 import type { DnSummary, DnSummaryMonth } from '@cyient/api-client/dn';
-import { DateField, EmptyState, ErrorState, errorMessage, FilterBar, PageHeader, SectionCard, SectionSkeleton, SimpleTable, useListState } from '@cyient/shared-ui';
+import { DateField, EmptyState, errorMessage, ErrorState, FilterToolbar, PageHeader, SectionCard, SectionSkeleton, SimpleTable, useListState } from '@cyient/shared-ui';
 import { formatNumber } from '@cyient/shared-utils';
 import { Box, Card, CardContent, LinearProgress, Stack, Typography, type LinearProgressProps } from '@mui/material';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useSummary } from '@/hooks/reports/queries';
 
 interface Filters {
@@ -130,17 +131,21 @@ function ByMonth({ months }: { months: readonly DnSummaryMonth[] }) {
 
 /** The DN summary report: submitted deviations by outcome, and by month for the graph, between two request dates. */
 export function SummaryPage() {
-  const list = useListState<Filters>(['from', 'to']);
+  const list = useListState<Filters>([QUERY_PARAMS.FROM, QUERY_PARAMS.TO]);
   const { from, to } = list.filters;
   const summary = useSummary(from, to);
 
   return (
     <>
       <PageHeader title="DN summary" subtitle="Submitted deviations by outcome and by month" />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <DateField label="Request date from" value={from ?? null} maxDate={to} onChange={(value) => { list.setFilters({ from: value ?? undefined }); }} />
-        <DateField label="Request date to" value={to ?? null} minDate={from} onChange={(value) => { list.setFilters({ to: value ?? undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['from', 'to']}>
+        {(_, change) => (
+          <>
+            <DateField label="Request date from" value={from ?? null} maxDate={to} onChange={(value) => { change({ from: value ?? undefined }); }} />
+            <DateField label="Request date to" value={to ?? null} minDate={from} onChange={(value) => { change({ to: value ?? undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
 
       {summary.isPending ? (
         <SectionSkeleton />

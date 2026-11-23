@@ -18,6 +18,7 @@ import { dnTags } from '@/api-callers/api-tags';
 import type { WorkflowCall, WorkflowStep } from '@/api-callers/requests/request.api';
 import { useWorkflowAction } from '@/hooks/requests/mutations';
 import { STATUS_ACTIONS } from '@/constants/status-actions';
+import { YES_NO_OPTIONS, type YesNo } from '@/constants/static-dropdowns';
 
 interface StepText {
   label: string;
@@ -160,16 +161,13 @@ export function WorkflowActions({ request }: { request: RequestDetails }) {
         >
           {hodApproves && (
             <>
-              <RadioGroupField<'yes' | 'no'>
+              <RadioGroupField<YesNo>
                 name="furtherApprovalRequired"
                 label="Further approval required?"
                 required
                 value={further}
                 onChange={setFurther}
-                options={[
-                  { value: 'yes', label: 'Yes' },
-                  { value: 'no', label: 'No' },
-                ]}
+                options={YES_NO_OPTIONS}
                 helperText={further === 'no' ? 'Approving closes the deviation as approved.' : undefined}
               />
               {further === 'yes' && (

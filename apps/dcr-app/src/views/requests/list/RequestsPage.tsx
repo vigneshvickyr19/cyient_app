@@ -1,17 +1,18 @@
 import type { RequestListItem, RequestScope, RequestSort } from '@cyient/api-client/dcr';
-import { Button, DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterBar, LinkButton, PageHeader, SearchField, SegmentedTabs, StatusChip, toNumber, useAuth, useFileDownload, useListState, useMasterOptions } from '@cyient/shared-ui';
+import { Button, DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterToolbar, LinkButton, PageHeader, SegmentedTabs, StatusChip, Tab, toNumber, useAuth, useFileDownload, useListState, useMasterOptions } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import AddIcon from '@mui/icons-material/Add';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
-import { Tab } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { exportRequests } from '@/api-callers/requests/request.api';
 import { useDcrApi } from '@/hooks/useDcrApi';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import type { RequestListQuery } from '@/types/requests';
 import { useRequestList } from '@/hooks/requests/queries';
-import { isDcrStatus, isReleasedStatus, releasedInfo, releasedOptions, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/request-status';
+import { isDcrStatus, isReleasedStatus, releasedInfo, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
+import { releasedOptions, statusOptions } from '@/constants/static-dropdowns';
 
 interface Filters {
   scope?: string;
@@ -25,7 +26,17 @@ interface Filters {
   to?: string;
 }
 
-const filterNames = ['scope', 'search', 'status', 'released', 'location', 'department', 'reason', 'from', 'to'] as const;
+const filterNames = [
+  QUERY_PARAMS.SCOPE,
+  QUERY_PARAMS.SEARCH,
+  QUERY_PARAMS.STATUS,
+  QUERY_PARAMS.RELEASED,
+  QUERY_PARAMS.LOCATION,
+  QUERY_PARAMS.DEPARTMENT,
+  QUERY_PARAMS.REASON,
+  QUERY_PARAMS.FROM,
+  QUERY_PARAMS.TO,
+] as const;
 
 /** Grid columns the API can sort by, and its name for each. */
 const sortFields: Record<string, RequestSort> = {
@@ -125,16 +136,19 @@ export function RequestsPage() {
         </SegmentedTabs>
       )}
 
-      <FilterBar active={list.filtered && filterNames.some((name) => name !== 'scope' && Boolean(filters[name]))} onClear={() => { list.setFilters({ search: undefined, status: undefined, released: undefined, location: undefined, department: undefined, reason: undefined, from: undefined, to: undefined }); }}>
-        <SearchField value={filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="Request no, document reference…" />
-        <Dropdown label="Status" options={statusOptions} value={isDcrStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { list.setFilters({ status: status ?? undefined }); }} />
-        <Dropdown label="Released" options={releasedOptions} value={isReleasedStatus(filters.released) ? filters.released : null} emptyLabel="Any" onChange={(released) => { list.setFilters({ released: released ?? undefined }); }} />
-        <Dropdown label="Location" options={locations} value={toNumber(filters.location) ?? null} emptyLabel="Any location" onChange={(id) => { list.setFilters({ location: id?.toString() }); }} />
-        <Dropdown label="Department" options={departments} value={toNumber(filters.department) ?? null} emptyLabel="Any department" onChange={(id) => { list.setFilters({ department: id?.toString() }); }} />
-        <Dropdown label="Reason category" options={reasons} value={toNumber(filters.reason) ?? null} emptyLabel="Any reason" onChange={(id) => { list.setFilters({ reason: id?.toString() }); }} />
-        <DateField label="Requested from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { list.setFilters({ from: from ?? undefined }); }} />
-        <DateField label="Requested to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { list.setFilters({ to: to ?? undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['status', 'released', 'location', 'department', 'reason', 'from', 'to']} searchName="search" searchPlaceholder="Request no, document reference…">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Status" options={statusOptions} value={isDcrStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { change({ status: status ?? undefined }); }} />
+            <Dropdown label="Released" options={releasedOptions} value={isReleasedStatus(filters.released) ? filters.released : null} emptyLabel="Any" onChange={(released) => { change({ released: released ?? undefined }); }} />
+            <Dropdown label="Location" options={locations} value={toNumber(filters.location) ?? null} emptyLabel="Any location" onChange={(id) => { change({ location: id?.toString() }); }} />
+            <Dropdown label="Department" options={departments} value={toNumber(filters.department) ?? null} emptyLabel="Any department" onChange={(id) => { change({ department: id?.toString() }); }} />
+            <Dropdown label="Reason category" options={reasons} value={toNumber(filters.reason) ?? null} emptyLabel="Any reason" onChange={(id) => { change({ reason: id?.toString() }); }} />
+            <DateField label="Requested from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { change({ from: from ?? undefined }); }} />
+            <DateField label="Requested to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { change({ to: to ?? undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
 
       {requests.isError ? (
         <ErrorState message={errorMessage(requests.error)} onRetry={() => void requests.refetch()} />

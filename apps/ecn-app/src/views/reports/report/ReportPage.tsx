@@ -1,20 +1,5 @@
 import type { ReportItem } from '@cyient/api-client/ecn';
-import {
-  Button,
-  Dropdown,
-  ErrorState,
-  errorMessage,
-  FilterBar,
-  PageHeader,
-  SectionCard,
-  SectionSkeleton,
-  SimpleTable,
-  StatusChip,
-  useAuth,
-  useFileDownload,
-  useListState,
-  type SimpleColumn,
-} from '@cyient/shared-ui';
+import { Button, Dropdown, errorMessage, ErrorState, FilterToolbar, PageHeader, SectionCard, SectionSkeleton, type SimpleColumn, SimpleTable, StatusChip, useAuth, useFileDownload, useListState } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import { Link, Stack, Typography } from '@mui/material';
@@ -22,6 +7,7 @@ import { Link as RouterLink } from 'react-router';
 import { exportOpenEcnReport } from '@/api-callers/reports/report.api';
 import { useEcnApi } from '@/hooks/useEcnApi';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useCustomerOptions } from '@/hooks/masters/queries';
 import { statusInfo } from '@/constants/note-status';
 import { useOpenEcnReport } from '@/hooks/reports/queries';
@@ -69,7 +55,7 @@ const columns: SimpleColumn<ReportItem>[] = [
 export function ReportPage() {
   const { can } = useAuth();
   const api = useEcnApi();
-  const list = useListState<Filters>(['customer']);
+  const list = useListState<Filters>([QUERY_PARAMS.CUSTOMER]);
   const customers = useCustomerOptions();
   const customerId = list.filters.customer ? Number(list.filters.customer) : undefined;
   const report = useOpenEcnReport(customerId);
@@ -88,9 +74,13 @@ export function ReportPage() {
           )
         }
       />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <Dropdown label="Customer" options={customers} value={customerId ?? null} emptyLabel="All customers" onChange={(id) => { list.setFilters({ customer: id?.toString() }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['customer']}>
+        {(_, change) => (
+          <>
+            <Dropdown label="Customer" options={customers} value={customerId ?? null} emptyLabel="All customers" onChange={(id) => { change({ customer: id?.toString() }); }} />
+          </>
+        )}
+      </FilterToolbar>
       <SectionCard title="Open ECNs" subheader={report.data ? `${report.data.length} open` : undefined} flush>
         {report.isPending ? (
           <SectionSkeleton />

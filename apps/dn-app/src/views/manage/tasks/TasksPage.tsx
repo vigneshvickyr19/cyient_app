@@ -1,9 +1,10 @@
 import type { OpenTaskItem } from '@cyient/api-client/dn';
-import { DataTable, ErrorState, errorMessage, FilterBar, Input, PageHeader, PeoplePicker, useAuth, useListState } from '@cyient/shared-ui';
+import { DataTable, errorMessage, ErrorState, FilterToolbar, Input, PageHeader, PeoplePicker, useAuth, useListState } from '@cyient/shared-ui';
 import { daysSince, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { useOpenTasks } from '@/hooks/manage/queries';
 
@@ -27,7 +28,7 @@ const columns: GridColDef<OpenTaskItem>[] = [
 export function TasksPage() {
   const { can } = useAuth();
   const navigate = useNavigate();
-  const list = useListState<Filters>(['assignee', 'assigneeName', 'minDays']);
+  const list = useListState<Filters>([QUERY_PARAMS.ASSIGNEE, QUERY_PARAMS.ASSIGNEE_NAME, QUERY_PARAMS.MIN_DAYS]);
   const assigneeId = list.filters.assignee ? Number(list.filters.assignee) : undefined;
   const tasks = useOpenTasks({
     AssigneeUserId: assigneeId,
@@ -40,20 +41,24 @@ export function TasksPage() {
   return (
     <>
       <PageHeader title="Open tasks" subtitle="Deviations waiting for someone, longest waiting first" />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <PeoplePicker
-          label="Pending with"
-          value={assigneeId ? { id: assigneeId, name: list.filters.assigneeName ?? '' } : null}
-          onChange={(person) => { list.setFilters({ assignee: person?.id.toString(), assigneeName: person?.name }); }}
-        />
-        <Input
-          label="Waiting at least (days)"
-          type="number"
-          value={list.filters.minDays ?? ''}
-          onChange={(minDays) => { list.setFilters({ minDays }); }}
-          slotProps={{ htmlInput: { min: 0 } }}
-        />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['assignee', 'assigneeName', 'minDays']} helperFields={['assigneeName']}>
+        {(filters, change) => (
+          <>
+            <PeoplePicker
+              label="Pending with"
+              value={assigneeId ? { id: assigneeId, name: filters.assigneeName ?? '' } : null}
+              onChange={(person) => { change({ assignee: person?.id.toString(), assigneeName: person?.name }); }}
+            />
+            <Input
+              label="Waiting at least (days)"
+              type="number"
+              value={filters.minDays ?? ''}
+              onChange={(minDays) => { change({ minDays }); }}
+              slotProps={{ htmlInput: { min: 0 } }}
+            />
+          </>
+        )}
+      </FilterToolbar>
       {tasks.isError ? (
         <ErrorState message={errorMessage(tasks.error)} onRetry={() => void tasks.refetch()} />
       ) : (

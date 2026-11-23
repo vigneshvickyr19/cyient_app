@@ -2,6 +2,7 @@ import { Button, Dropdown, ErrorState, errorMessage, PageHeader, SectionCard, Se
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import { Stack } from '@mui/material';
 import { downloadTracker } from '@/api-callers/reports/report.api';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useEcnApi } from '@/hooks/useEcnApi';
 import { useCustomers } from '@/hooks/masters/queries';
 
@@ -12,7 +13,7 @@ interface Filters {
 /** The ECN Tracker (QMS format) in Excel: every ECN, open and closed, for all customers or one. */
 export function TrackerPage() {
   const api = useEcnApi();
-  const list = useListState<Filters>(['customer']);
+  const list = useListState<Filters>([QUERY_PARAMS.CUSTOMER]);
   const customers = useCustomers();
   const customerId = list.filters.customer ? Number(list.filters.customer) : undefined;
   const tracker = useFileDownload(() => downloadTracker(api, customerId), 'ECN Tracker.xlsx');

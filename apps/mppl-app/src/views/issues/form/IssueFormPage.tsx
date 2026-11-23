@@ -5,7 +5,8 @@ import { useNavigate, useParams } from 'react-router';
 import { IssueForm } from '@/views/issues/form/IssueForm';
 import { useCreateDraft, useUpdateDraft } from '@/hooks/issues/mutations';
 import { useIssue } from '@/hooks/issues/queries';
-import { issueTitle } from '@/constants/issue-status';
+import { issueTitle, STATUS_ACTIONS } from '@/constants/issue-status';
+import { QUERY_PARAMS } from '@/constants/query-params';
 
 /** New Issue: saves a draft, then opens it to add the reference documents and submit it. */
 export function NewIssuePage() {
@@ -51,7 +52,7 @@ export function EditIssuePage() {
     <>
       <PageHeader
         title={`Edit ${title}`}
-        breadcrumbs={[{ label: 'Issues', to: '/issues?list=Drafts' }, { label: title, to: `/issues/${publicId}` }, { label: 'Edit' }]}
+        breadcrumbs={[{ label: 'Issues', to: `/issues?${QUERY_PARAMS.LIST}=${STATUS_ACTIONS.DRAFTS}` }, { label: title, to: `/issues/${publicId}` }, { label: 'Edit' }]}
         backTo={`/issues/${publicId}`}
       />
       {details.allowedActions?.canEdit ? (

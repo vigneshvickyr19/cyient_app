@@ -3,9 +3,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SearchIcon from '@mui/icons-material/Search';
-import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined';
 import {
-  Badge,
   Box,
   Button,
   ButtonBase,
@@ -20,6 +18,7 @@ import {
   type Theme,
   Typography,
 } from '@mui/material';
+import { FilterButton } from '../search-filter/FilterButton';
 
 export interface ActionButton {
   label?: string;
@@ -327,44 +326,7 @@ export function DataTableHeader({
               }}
             >
               {shouldShowFilter && (
-                <Badge
-                  badgeContent={filterActiveCount}
-                  color="primary"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      bgcolor: '#00a3ad',
-                      color: '#ffffff',
-                      fontWeight: 700,
-                      fontSize: '0.7rem',
-                      height: 18,
-                      minWidth: 18,
-                    },
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    color="inherit"
-                    onClick={onFilterClick}
-                    startIcon={<TuneOutlinedIcon sx={{ fontSize: 18, color: '#00a3ad' }} />}
-                    sx={{
-                      textTransform: 'none',
-                      borderRadius: '10px',
-                      fontWeight: 600,
-                      fontSize: '0.875rem',
-                      borderColor: 'divider',
-                      bgcolor: 'background.paper',
-                      color: 'text.primary',
-                      px: 2,
-                      py: 0.85,
-                      '&:hover': {
-                        borderColor: '#00a3ad',
-                        bgcolor: 'rgba(0, 163, 173, 0.05)',
-                      },
-                    }}
-                  >
-                    {filterButtonLabel}
-                  </Button>
-                </Badge>
+                <FilterButton onClick={() => onFilterClick?.()} label={filterButtonLabel} count={filterActiveCount} />
               )}
 
               {shouldShowExport && (

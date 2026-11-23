@@ -20,10 +20,9 @@ import { businessToday, formatDate, maxLength, numberOrNull, required, textOrNul
 import { Box, Stack } from '@mui/material';
 import { useForm, useWatch } from 'react-hook-form';
 import { masterTypes } from '@/constants/masters';
+import { YES_NO_OPTIONS, type YesNo } from '@/constants/static-dropdowns';
 import { notAfterToday, zeroOrMore } from '@/utils/rules';
 import { useEarlierComplaints } from '@/hooks/complaints/queries';
-
-type YesNo = 'yes' | 'no';
 
 /** The first page (D1 to D3), as the API's input has it: only the customer is required (BR-07). */
 interface ComplaintFormValues {
@@ -58,11 +57,6 @@ interface ComplaintFormValues {
 
 const LONG_TEXT = 4000;
 const MAX_MEMBERS = 50;
-
-const yesNo: Option<YesNo>[] = [
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-];
 
 function formValuesOf(complaint?: ComplaintDetails): ComplaintFormValues {
   const text = (value: string | null | undefined) => value ?? '';
@@ -248,7 +242,7 @@ export function ComplaintForm({ complaint, saving, onSave, onCancel }: Complaint
         <SectionCard title="D2 Problem description">
           <Stack spacing={2}>
             <FormTextArea<ComplaintFormValues> name="problemDescription" label="Problem description" rules={maxLength(LONG_TEXT, 'Problem description')} />
-            <FormRadioGroup<ComplaintFormValues, YesNo> name="required" label="Required" options={yesNo} helperText="When the answer is No, give the justification." />
+            <FormRadioGroup<ComplaintFormValues, YesNo> name="required" label="Required" options={YES_NO_OPTIONS} helperText="When the answer is No, give the justification." />
             {answer === 'no' && (
               <FormTextArea<ComplaintFormValues>
                 name="requiredJustification"

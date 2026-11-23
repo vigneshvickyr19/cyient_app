@@ -1,5 +1,5 @@
 import type { AppLogItem } from '@cyient/api-client/platform';
-import { formatDateTime } from '@cyient/shared-utils';
+import { formatDateTime, QUERY_PARAMS } from '@cyient/shared-utils';
 import ExpandLessOutlinedIcon from '@mui/icons-material/ExpandLessOutlined';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import { Box, Collapse, IconButton, Stack, Tooltip, Typography } from '@mui/material';
@@ -10,7 +10,8 @@ import { Dropdown } from '../../index';
 import { SectionSkeleton } from '../../index';
 import { PageHeader } from '../../index';
 import { Pagination } from '../../index';
-import { FilterBar, SearchField } from '../../index';
+import { FilterToolbar } from '../../index';
+import { Input } from '../../index';
 import { SimpleTable, type SimpleColumn } from '../../index';
 import { errorMessage } from '../../index';
 import { useListState } from '../../index';
@@ -29,7 +30,15 @@ function levelTone(level: string | null): Tone {
 
 /** The technical log, newest first; search for a failed response's trace ID to see what happened. */
 export default function LogsPage() {
-  const list = useListState<LogFilters>(['level', 'traceId', 'userId', 'userName', 'search', 'from', 'to']);
+  const list = useListState<LogFilters>([
+    QUERY_PARAMS.LEVEL,
+    QUERY_PARAMS.TRACE_ID,
+    QUERY_PARAMS.USER_ID,
+    QUERY_PARAMS.USER_NAME,
+    QUERY_PARAMS.SEARCH,
+    QUERY_PARAMS.FROM,
+    QUERY_PARAMS.TO,
+  ]);
   const { filters } = list;
   const [expanded, setExpanded] = useState<ReadonlySet<number>>(new Set());
 
@@ -116,35 +125,32 @@ export default function LogsPage() {
   return (
     <>
       <PageHeader title="Technical log" subtitle="What the API recorded, newest first. Search for the reference of an error to see what happened." />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <Dropdown<string>
-          label="Level"
-          value={filters.level ?? null}
-          options={levels.map((level) => ({ value: level, label: level }))}
-          emptyLabel="Any level"
-          onChange={(level) => {
-            list.setFilters({ level: level ?? undefined });
-          }}
-        />
-        <SearchField
-          label="Trace ID"
-          placeholder="The reference of an error"
-          value={filters.traceId ?? ''}
-          onSearch={(traceId) => {
-            list.setFilters({ traceId });
-          }}
-        />
-        <UserFilter userId={filters.userId} userName={filters.userName} onChange={list.setFilters} />
-        <SearchField
-          label="Search"
-          placeholder="Part of the message"
-          value={filters.search ?? ''}
-          onSearch={(search) => {
-            list.setFilters({ search });
-          }}
-        />
-        <DateRangeFilter from={filters.from} to={filters.to} onChange={list.setFilters} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['level', 'traceId', 'userId', 'userName', 'from', 'to']} helperFields={['userName']} searchName="search" searchPlaceholder="Part of the message">
+        {(filters, change) => (
+          <>
+            <Dropdown<string>
+              label="Level"
+              value={filters.level ?? null}
+              options={levels.map((level) => ({ value: level, label: level }))}
+              emptyLabel="Any level"
+              onChange={(level) => {
+                change({ level: level ?? undefined });
+              }}
+            />
+            <Input
+              label="Trace ID"
+              placeholder="The reference of an error"
+              value={filters.traceId ?? ''}
+              onChange={(traceId) => {
+                change({ traceId });
+              }}
+            />
+            <UserFilter userId={filters.userId} userName={filters.userName} onChange={change} />
+            <DateRangeFilter from={filters.from} to={filters.to} onChange={change} />
+      
+          </>
+        )}
+      </FilterToolbar>
       <SectionCard title="Entries" flush>
         {logs.isPending ? (
           <Box sx={{ p: 2 }}>

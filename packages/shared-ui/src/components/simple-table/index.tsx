@@ -1,5 +1,6 @@
+import { isValidElement, type ReactNode } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, type TableCellProps } from '@mui/material';
-import type { ReactNode } from 'react';
+import { EMPTY_CELL_FALLBACK, isCellEmpty } from '@cyient/shared-utils';
 import { EmptyState } from '../empty-state';
 
 export interface SimpleColumn<Row> {
@@ -48,11 +49,19 @@ export function SimpleTable<Row>({ rows, columns, getRowKey, onRowClick, emptyTi
                 onClick={onRowClick ? () => { onRowClick(row); } : undefined}
                 sx={onRowClick ? { cursor: 'pointer' } : undefined}
               >
-                {columns.map((column) => (
-                  <TableCell key={column.key} align={column.align} sx={{ verticalAlign: 'top' }}>
-                    {column.render(row)}
-                  </TableCell>
-                ))}
+                {columns.map((column) => {
+                  const content = column.render(row);
+                  const isContentEmpty = !isValidElement(content) && isCellEmpty(content);
+                  return (
+                    <TableCell
+                      key={column.key}
+                      align={column.align}
+                      sx={{ verticalAlign: 'top', color: isContentEmpty ? 'text.secondary' : undefined }}
+                    >
+                      {isContentEmpty ? EMPTY_CELL_FALLBACK : content}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))}
           </TableBody>

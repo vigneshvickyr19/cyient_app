@@ -94,6 +94,8 @@ function AppShellContent({
             p: { xs: 2, sm: 3, md: 3.5 },
             bgcolor: 'background.default',
             color: 'text.primary',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           <Box
@@ -101,6 +103,9 @@ function AppShellContent({
               maxWidth: layout.contentMaxWidth,
               mx: 'auto',
               width: '100%',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
             <ErrorBoundary resetKeys={[location.pathname]}>

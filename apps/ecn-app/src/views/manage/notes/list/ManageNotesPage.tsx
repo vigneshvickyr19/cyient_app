@@ -1,10 +1,12 @@
 import type { NoteListItem } from '@cyient/api-client/ecn';
-import { DataTable, Dropdown, ErrorState, errorMessage, FilterBar, PageHeader, SearchField, StatusChip, useListState } from '@cyient/shared-ui';
+import { DataTable, Dropdown, errorMessage, ErrorState, FilterToolbar, PageHeader, StatusChip, useListState } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { useNoteList } from '@/hooks/notes/queries';
-import { isNoteStatus, isNoteType, statusInfo, statusOptions, typeLabels, typeOptions } from '@/constants/note-status';
+import { isNoteStatus, isNoteType, statusInfo, typeLabels } from '@/constants/note-status';
+import { statusOptions, typeOptions } from '@/constants/static-dropdowns';
+import { QUERY_PARAMS } from '@/constants/query-params';
 
 interface Filters {
   search?: string;
@@ -25,7 +27,7 @@ const columns: GridColDef<NoteListItem>[] = [
 /** Every ECN and TCN, drafts and cancelled ones included, for administrators: open one to cancel it or see its record. */
 export function ManageNotesPage() {
   const navigate = useNavigate();
-  const list = useListState<Filters>(['search', 'status', 'type']);
+  const list = useListState<Filters>([QUERY_PARAMS.SEARCH, QUERY_PARAMS.STATUS, QUERY_PARAMS.TYPE]);
   const notes = useNoteList({
     View: 'All',
     Search: list.filters.search,
@@ -38,11 +40,14 @@ export function ManageNotesPage() {
   return (
     <>
       <PageHeader title="All notes (administration)" subtitle="Cancel a note, and see its history, emails and audit trail" />
-      <FilterBar active={list.filtered} onClear={list.clearFilters}>
-        <SearchField value={list.filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="Number, product, customer…" />
-        <Dropdown label="ECN or TCN" options={typeOptions} value={isNoteType(list.filters.type) ? list.filters.type : null} emptyLabel="Both" onChange={(type) => { list.setFilters({ type: type ?? undefined }); }} />
-        <Dropdown label="Status" options={statusOptions} value={isNoteStatus(list.filters.status) ? list.filters.status : null} emptyLabel="Any status" onChange={(status) => { list.setFilters({ status: status ?? undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['type', 'status']} searchName="search" searchPlaceholder="Number, product, customer…">
+        {(filters, change) => (
+          <>
+            <Dropdown label="ECN or TCN" options={typeOptions} value={isNoteType(filters.type) ? filters.type : null} emptyLabel="Both" onChange={(type) => { change({ type: type ?? undefined }); }} />
+            <Dropdown label="Status" options={statusOptions} value={isNoteStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { change({ status: status ?? undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
       {notes.isError ? (
         <ErrorState message={errorMessage(notes.error)} onRetry={() => void notes.refetch()} />
       ) : (

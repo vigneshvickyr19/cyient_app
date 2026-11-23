@@ -1,25 +1,17 @@
-import type { IssueList, IssueListItem } from '@cyient/api-client/mppl';
-import { DataTable, errorMessage, ErrorState, FilterBar, PageHeader, SearchField, SegmentedTabs, StatusChip, useListState } from '@cyient/shared-ui';
-import { Tab } from '@mui/material';
+import type { IssueListItem } from '@cyient/api-client/mppl';
+import { DataTable, errorMessage, ErrorState, FilterToolbar, PageHeader, SegmentedTabs, StatusChip, Tab, useListState } from '@cyient/shared-ui';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { issueColumns } from '@/components/issues/columns';
 import { STATUS_ACTIONS, statusInfo } from '@/constants/issue-status';
+import { MANAGE_ISSUE_LIST_OPTIONS, type AdminList } from '@/constants/static-dropdowns';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useAdminIssues } from '@/hooks/manage/queries';
-
-type AdminList = Exclude<IssueList, null>;
 
 interface Filters {
   list?: string;
   search?: string;
 }
-
-const lists: readonly { value: AdminList; label: string }[] = [
-  { value: STATUS_ACTIONS.OPEN, label: 'Open' },
-  { value: STATUS_ACTIONS.FIXED, label: 'Fixed' },
-  { value: STATUS_ACTIONS.DRAFTS, label: 'Drafts' },
-  { value: 'All', label: 'Open and fixed' },
-];
 
 const columns: GridColDef<IssueListItem>[] = [
   { ...issueColumns.poNumber, sortable: false },
@@ -36,8 +28,8 @@ const columns: GridColDef<IssueListItem>[] = [
 /** Every issue for request administrators: open one to close it for Sourcing or see its history, emails and audit trail. */
 export function ManageIssuesPage() {
   const navigate = useNavigate();
-  const list = useListState<Filters>(['list', 'search']);
-  const current: AdminList = lists.find((item) => item.value === list.filters.list)?.value ?? STATUS_ACTIONS.OPEN;
+  const list = useListState<Filters>([QUERY_PARAMS.LIST, QUERY_PARAMS.SEARCH]);
+  const current: AdminList = MANAGE_ISSUE_LIST_OPTIONS.find((item) => item.value === list.filters.list)?.value ?? STATUS_ACTIONS.OPEN;
   const issues = useAdminIssues({ List: current, Search: list.filters.search, Page: list.page, PageSize: list.pageSize });
 
   return (
@@ -52,13 +44,11 @@ export function ManageIssuesPage() {
         allowScrollButtonsMobile
         sx={{ mb: 2 }}
       >
-        {lists.map((item) => (
+        {MANAGE_ISSUE_LIST_OPTIONS.map((item) => (
           <Tab key={item.value} value={item.value} label={item.label} />
         ))}
       </SegmentedTabs>
-      <FilterBar active={Boolean(list.filters.search)} onClear={() => { list.setFilters({ search: undefined }); }}>
-        <SearchField value={list.filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="PO, part number, supplier, MPN…" />
-      </FilterBar>
+      <FilterToolbar list={list} fields={[]} searchName="search" searchPlaceholder="PO, part number, supplier, MPN…" />
       {issues.isError ? (
         <ErrorState message={errorMessage(issues.error)} onRetry={() => void issues.refetch()} />
       ) : (

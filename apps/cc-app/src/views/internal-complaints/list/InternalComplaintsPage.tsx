@@ -1,15 +1,16 @@
 import type { ComplaintScope, InternalListItem } from '@cyient/api-client/cc';
-import { DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterBar, LinkButton, PageHeader, SearchField, SegmentedTabs, StatusChip, toNumber, useAuth, useListState, useMasterOptions } from '@cyient/shared-ui';
+import { DataTable, DateField, Dropdown, errorMessage, ErrorState, FilterToolbar, LinkButton, PageHeader, SegmentedTabs, StatusChip, Tab, toNumber, useAuth, useListState, useMasterOptions } from '@cyient/shared-ui';
 import { formatDate } from '@cyient/shared-utils';
 import AddIcon from '@mui/icons-material/Add';
-import { Tab } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { masterTypes } from '@/constants/masters';
 import { permissions } from '@/constants/permissions';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import type { InternalListQuery } from '@/types/complaints';
 import { useInternalList } from '@/hooks/internal/queries';
-import { internalStatusInfo, internalStatusOptions, isInternalStatus } from '@/constants/internal-status';
+import { internalStatusInfo, isInternalStatus } from '@/constants/internal-status';
+import { internalStatusOptions } from '@/constants/static-dropdowns';
 
 interface Filters {
   scope?: string;
@@ -20,7 +21,14 @@ interface Filters {
   to?: string;
 }
 
-const filterNames = ['scope', 'search', 'status', 'customer', 'from', 'to'] as const;
+const filterNames = [
+  QUERY_PARAMS.SCOPE,
+  QUERY_PARAMS.SEARCH,
+  QUERY_PARAMS.STATUS,
+  QUERY_PARAMS.CUSTOMER,
+  QUERY_PARAMS.FROM,
+  QUERY_PARAMS.TO,
+] as const;
 
 const columns: GridColDef<InternalListItem>[] = [
   { field: 'complaintNo', headerName: 'Complaint no', minWidth: 140, sortable: false },
@@ -83,18 +91,16 @@ export function InternalComplaintsPage() {
         </SegmentedTabs>
       )}
 
-      <FilterBar
-        active={list.filtered && filterNames.some((name) => name !== 'scope' && Boolean(filters[name]))}
-        onClear={() => {
-          list.setFilters({ search: undefined, status: undefined, customer: undefined, from: undefined, to: undefined });
-        }}
-      >
-        <SearchField value={filters.search ?? ''} onSearch={(search) => { list.setFilters({ search }); }} placeholder="Complaint no, part no, problem…" />
-        <Dropdown label="Status" options={internalStatusOptions} value={isInternalStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { list.setFilters({ status: status ?? undefined }); }} />
-        <Dropdown label="Customer" options={customers} value={toNumber(filters.customer) ?? null} emptyLabel="Any customer" onChange={(id) => { list.setFilters({ customer: id?.toString() }); }} />
-        <DateField label="Complaint date from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { list.setFilters({ from: from ?? undefined }); }} />
-        <DateField label="Complaint date to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { list.setFilters({ to: to ?? undefined }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['status', 'customer', 'from', 'to']} searchName="search" searchPlaceholder="Complaint no, part no, problem…">
+        {(filters, change) => (
+          <>
+            <Dropdown label="Status" options={internalStatusOptions} value={isInternalStatus(filters.status) ? filters.status : null} emptyLabel="Any status" onChange={(status) => { change({ status: status ?? undefined }); }} />
+            <Dropdown label="Customer" options={customers} value={toNumber(filters.customer) ?? null} emptyLabel="Any customer" onChange={(id) => { change({ customer: id?.toString() }); }} />
+            <DateField label="Complaint date from" value={filters.from ?? null} maxDate={filters.to} onChange={(from) => { change({ from: from ?? undefined }); }} />
+            <DateField label="Complaint date to" value={filters.to ?? null} minDate={filters.from} onChange={(to) => { change({ to: to ?? undefined }); }} />
+          </>
+        )}
+      </FilterToolbar>
 
       {complaints.isError ? (
         <ErrorState message={errorMessage(complaints.error)} onRetry={() => void complaints.refetch()} />

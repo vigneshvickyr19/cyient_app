@@ -1,31 +1,12 @@
 import type { ReviewerBoxDetails } from '@cyient/api-client/dn';
-import {
-  applyServerErrors,
-  Button,
-  Dropdown,
-  EmptyState,
-  ErrorState,
-  errorMessage,
-  FilterBar,
-  Form,
-  FormCheckbox,
-  FormInput,
-  Modal,
-  PageHeader,
-  SectionCard,
-  SectionSkeleton,
-  SimpleTable,
-  StatusChip,
-  useListState,
-  useMasterOptions,
-  type SimpleColumn,
-} from '@cyient/shared-ui';
+import { applyServerErrors, Button, Dropdown, EmptyState, errorMessage, ErrorState, FilterToolbar, Form, FormCheckbox, FormInput, Modal, PageHeader, SectionCard, SectionSkeleton, type SimpleColumn, SimpleTable, StatusChip, useListState, useMasterOptions } from '@cyient/shared-ui';
 import { maxLength, required } from '@cyient/shared-utils';
 import AddIcon from '@mui/icons-material/Add';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import { IconButton, Stack, Tooltip } from '@mui/material';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { QUERY_PARAMS } from '@/constants/query-params';
 import { useAdminReviewerBoxes, useSaveReviewerBox } from '@/hooks/manage/queries';
 
 interface BoxValues {
@@ -107,7 +88,7 @@ function BoxDialog({ changeCategoryId, box, nextSequence, onClose }: { changeCat
 
 /** IT's maintenance of each change category's reviewer and approver boxes, in their order. */
 export function ReviewerBoxesPage() {
-  const list = useListState<{ category?: string }>(['category']);
+  const list = useListState<{ category?: string }>([QUERY_PARAMS.CATEGORY]);
   const categories = useMasterOptions('ChangeCategory');
   const categoryId = list.filters.category ? Number(list.filters.category) : (categories[0]?.value ?? null);
   const boxes = useAdminReviewerBoxes(categoryId);
@@ -139,9 +120,13 @@ export function ReviewerBoxesPage() {
   return (
     <>
       <PageHeader title="Reviewer boxes" subtitle="The reviewers and approvers each change category goes through, after the reporting manager" />
-      <FilterBar>
-        <Dropdown label="Change category" options={categories} value={categoryId} onChange={(id) => { list.setFilters({ category: id?.toString() }); }} />
-      </FilterBar>
+      <FilterToolbar list={list} fields={['category']}>
+        {(_, change) => (
+          <>
+            <Dropdown label="Change category" options={categories} value={categoryId} onChange={(id) => { change({ category: id?.toString() }); }} />
+          </>
+        )}
+      </FilterToolbar>
 
       {categoryId === null ? (
         <EmptyState title="No change categories" message="Add change categories under Administration › Master lists first." />

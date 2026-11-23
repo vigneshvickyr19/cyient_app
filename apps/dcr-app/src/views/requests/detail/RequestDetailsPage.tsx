@@ -1,125 +1,30 @@
-import type { RequestDetails } from '@cyient/api-client/dcr';
 import {
-  ActivityLog,
   Button,
-  CheckboxField,
-  DetailList,
-  DocumentList,
-  documentUpload,
   ErrorState,
   errorMessage,
   InlineAlert,
   PageHeader,
   PageLoader,
-  SectionCard,
-  SectionSkeleton,
   StatusChip,
-  useDownloadDocument,
+  SegmentedTabs,
+  Tab,
   useFileDownload,
   useTabState,
 } from '@cyient/shared-ui';
-import { formatDate, formatDateTime } from '@cyient/shared-utils';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
-import { Stack, Tab, Tabs } from '@mui/material';
-import { useState } from 'react';
 import { useParams } from 'react-router';
 import { downloadRequestPdf } from '@/api-callers/requests/request.api';
 import { useDcrApi } from '@/hooks/useDcrApi';
-import { ClausesSection } from '@/views/requests/detail/ClausesSection';
-import { useUploadDocument } from '@/hooks/requests/mutations';
-import { useRequest, useRequestDocuments, useRequestLog } from '@/hooks/requests/queries';
+import { useRequest } from '@/hooks/requests/queries';
 import { releasedInfo, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
-import { DEFAULT_REQUEST_DETAIL_TAB, REQUEST_DETAIL_TABS, type RequestDetailTab } from '@/constants/tab-sections';
+import {
+  DEFAULT_REQUEST_DETAIL_TAB,
+  REQUEST_DETAIL_TAB_SECTIONS,
+  REQUEST_DETAIL_TABS,
+  renderRequestDetailTab,
+  type RequestDetailTab,
+} from '@/constants/tab-sections';
 import { WorkflowActions } from '@/views/requests/detail/WorkflowActions';
-
-function RequestSummary({ request }: { request: RequestDetails }) {
-  return (
-    <Stack spacing={3}>
-      <SectionCard title="Document request">
-        <DetailList
-          items={[
-            { label: 'Requested by', value: request.requestFrom.name },
-            { label: 'Designation', value: request.designation },
-            { label: 'Request date', value: formatDate(request.requestDate) },
-            { label: 'Location', value: request.location.name },
-            { label: 'Department / Function', value: request.department.name },
-            { label: 'Need by', value: formatDate(request.needByDate) },
-            { label: 'Document reference', value: request.documentReference },
-            { label: 'Current revision no', value: request.currentRevisionNo },
-            { label: 'Current revision date', value: formatDate(request.currentRevisionDate) },
-            { label: 'Document description', value: request.documentDescription, wide: true },
-          ]}
-        />
-      </SectionCard>
-      <SectionCard title="Reason and risk">
-        <DetailList
-          items={[
-            { label: 'Reason category', value: request.reasonCategory.name },
-            { label: 'Reason for changes', value: request.reasonForChanges, wide: true },
-            { label: 'Risk and impact on the QMS', value: request.riskToQms, wide: true },
-            { label: 'Risk and impact on the devices', value: request.riskToDevices, wide: true },
-          ]}
-        />
-      </SectionCard>
-      <SectionCard title="Reviewers and release">
-        <DetailList
-          items={[
-            { label: 'Department Manager', value: request.deptManager.name },
-            { label: 'Department Head', value: request.deptHead.name },
-            { label: 'Submitted', value: formatDateTime(request.submittedAt) },
-            { label: 'Release date', value: formatDate(request.releaseDate) },
-            { label: 'Effective implementation date', value: formatDate(request.effectiveImplementationDate) },
-          ]}
-        />
-      </SectionCard>
-    </Stack>
-  );
-}
-
-function DocumentsSection({ request }: { request: RequestDetails }) {
-  const [allVersions, setAllVersions] = useState(false);
-  const documents = useRequestDocuments(request.publicId, allVersions);
-  const upload = useUploadDocument(request.publicId);
-  const download = useDownloadDocument();
-
-  return (
-    <SectionCard
-      title="Documents"
-      subheader={request.allowedActions?.canEdit ? 'A DCR can only be submitted once it has a document.' : undefined}
-      actions={<CheckboxField label="Earlier versions" checked={allVersions} onChange={setAllVersions} />}
-    >
-      {documents.isPending ? (
-        <SectionSkeleton />
-      ) : documents.isError ? (
-        <ErrorState message={errorMessage(documents.error)} onRetry={() => void documents.refetch()} />
-      ) : (
-        <DocumentList
-          files={documents.data}
-          onDownload={(file) => { download.mutate(file.id); }}
-          downloading={(file) => download.isPending && download.variables === file.id}
-          upload={
-            request.allowedActions?.canEdit
-              ? { onUpload: (file) => upload.mutateAsync(file), uploading: upload.isPending, ...documentUpload }
-              : undefined
-          }
-        />
-      )}
-    </SectionCard>
-  );
-}
-
-function LogSection({ publicId }: { publicId: string }) {
-  const log = useRequestLog(publicId);
-  if (log.isPending) return <SectionSkeleton />;
-  if (log.isError) return <ErrorState message={errorMessage(log.error)} onRetry={() => void log.refetch()} />;
-  return (
-    <SectionCard title="Log">
-      <ActivityLog
-        entries={log.data.map((entry) => ({ at: entry.actionAt, user: entry.user.name, action: entry.action, stage: entry.stageName, comment: entry.comment }))}
-      />
-    </SectionCard>
-  );
-}
 
 /** One DCR: its tabs, and the actions the signed-in user may take. Email links open this page. */
 export function RequestDetailsPage() {
@@ -139,6 +44,7 @@ export function RequestDetailsPage() {
 
   const details = request.data;
   const title = details.requestNo ?? 'Draft request';
+  const tabContext = { request: details, publicId };
 
   return (
     <>
@@ -170,7 +76,7 @@ export function RequestDetailsPage() {
         </InlineAlert>
       )}
 
-      <Tabs
+      <SegmentedTabs
         value={tab}
         onChange={(_, value: RequestDetailTab) => {
           setTab(value);
@@ -179,16 +85,16 @@ export function RequestDetailsPage() {
         allowScrollButtonsMobile
         sx={{ my: 2 }}
       >
-        <Tab value="details" label="Document request" />
-        <Tab value="clauses" label={`Document details (${details.clauses.length})`} />
-        <Tab value="documents" label={`Documents${details.documentCount ? ` (${details.documentCount})` : ''}`} />
-        <Tab value="log" label="Log" />
-      </Tabs>
+        {REQUEST_DETAIL_TAB_SECTIONS.map((section) => (
+          <Tab
+            key={section.key}
+            value={section.key}
+            label={typeof section.label === 'function' ? section.label(tabContext) : section.label}
+          />
+        ))}
+      </SegmentedTabs>
 
-      {tab === 'details' && <RequestSummary request={details} />}
-      {tab === 'clauses' && <ClausesSection request={details} />}
-      {tab === 'documents' && <DocumentsSection request={details} />}
-      {tab === 'log' && <LogSection publicId={publicId} />}
+      {renderRequestDetailTab(tab, tabContext)}
     </>
   );
 }

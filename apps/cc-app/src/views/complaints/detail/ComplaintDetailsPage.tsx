@@ -1,75 +1,29 @@
 import type { ComplaintDetails } from '@cyient/api-client/cc';
 import {
-  ActivityLog,
-  CheckboxField,
-  DocumentList,
-  documentUpload,
-  ErrorState,
   errorMessage,
+  ErrorState,
   InlineAlert,
   LinkButton,
   PageHeader,
   PageLoader,
-  SectionCard,
-  SectionSkeleton,
   StatusChip,
+  Tab,
+  SegmentedTabs,
   useAuth,
-  useDownloadDocument,
   useTabState,
 } from '@cyient/shared-ui';
-import { Box, Stack, Step, StepLabel, Stepper, Tab, Tabs } from '@mui/material';
-import { useState } from 'react';
+import { Box, Stack, Step, StepLabel, Stepper } from '@mui/material';
 import { useParams } from 'react-router';
-import { ActionsSection } from '@/views/complaints/detail/ActionsSection';
-import { FirstPageSection } from '@/views/complaints/detail/FirstPageSection';
-import { useUploadDocument } from '@/hooks/complaints/mutations';
-import { useComplaint, useComplaintDocuments, useComplaintLog } from '@/hooks/complaints/queries';
-import { RootCauseSection } from '@/views/complaints/detail/RootCauseSection';
+import { useComplaint } from '@/hooks/complaints/queries';
 import { defaultTab, partOf, progressOf, STATUS_ACTIONS, statusInfo, stepReached, steps, waitingFor } from '@/constants/complaint-status';
-import { COMPLAINT_DETAIL_TABS, DEFAULT_COMPLAINT_DETAIL_TAB, type ComplaintDetailTab } from '@/constants/tab-sections';
-import { StepTextSection } from '@/views/complaints/detail/StepTextSection';
+import {
+  COMPLAINT_DETAIL_TAB_SECTIONS,
+  COMPLAINT_DETAIL_TABS,
+  DEFAULT_COMPLAINT_DETAIL_TAB,
+  renderComplaintDetailTab,
+  type ComplaintDetailTab,
+} from '@/constants/tab-sections';
 import { WorkflowActions } from '@/views/complaints/detail/WorkflowActions';
-
-function DocumentsSection({ complaint, canUpload }: { complaint: ComplaintDetails; canUpload: boolean }) {
-  const [allVersions, setAllVersions] = useState(false);
-  const documents = useComplaintDocuments(complaint.publicId, allVersions);
-  const upload = useUploadDocument(complaint.publicId);
-  const download = useDownloadDocument();
-
-  return (
-    <SectionCard
-      title="Documents"
-      subheader="Evidence images and documents of the first page, and the evidence of the D5 actions"
-      actions={<CheckboxField label="Earlier versions" checked={allVersions} onChange={setAllVersions} />}
-    >
-      {documents.isPending ? (
-        <SectionSkeleton />
-      ) : documents.isError ? (
-        <ErrorState message={errorMessage(documents.error)} onRetry={() => void documents.refetch()} />
-      ) : (
-        <DocumentList
-          files={documents.data}
-          onDownload={(file) => { download.mutate(file.id); }}
-          downloading={(file) => download.isPending && download.variables === file.id}
-          upload={canUpload ? { onUpload: (file) => upload.mutateAsync(file), uploading: upload.isPending, ...documentUpload } : undefined}
-        />
-      )}
-    </SectionCard>
-  );
-}
-
-function LogSection({ publicId }: { publicId: string }) {
-  const log = useComplaintLog(publicId);
-  if (log.isPending) return <SectionSkeleton />;
-  if (log.isError) return <ErrorState message={errorMessage(log.error)} onRetry={() => void log.refetch()} />;
-  return (
-    <SectionCard title="Log">
-      <ActivityLog
-        entries={log.data.map((entry) => ({ at: entry.actionAt, user: entry.user.name, action: entry.action, stage: entry.stageName, comment: entry.comment }))}
-      />
-    </SectionCard>
-  );
-}
 
 /** What the signed-in user may do on this complaint, and who it waits for. */
 function YourPart({ complaint, userId }: { complaint: ComplaintDetails; userId: number }) {
@@ -142,6 +96,13 @@ export function ComplaintDetailsPage() {
   };
   const isDraftOfInitiator = status === STATUS_ACTIONS.DRAFT && part.isInitiator;
   const repeatMissing = details.isRepeat && !details.repeatOf;
+  const tabContext = {
+    complaint: details,
+    publicId,
+    onMoved: moved,
+    canUpload: part.canUpload,
+    status,
+  };
 
   return (
     <>
@@ -182,7 +143,7 @@ export function ComplaintDetailsPage() {
         </Box>
       )}
 
-      <Tabs
+      <SegmentedTabs
         value={tab}
         onChange={(_, value: ComplaintDetailTab) => {
           showTab(value);
@@ -191,26 +152,17 @@ export function ComplaintDetailsPage() {
         allowScrollButtonsMobile
         sx={{ my: 2 }}
       >
-        {steps.map((step, index) => (
+        {COMPLAINT_DETAIL_TAB_SECTIONS.map((section) => (
           <Tab
-            key={step.tab}
-            value={step.tab}
-            label={step.tab === 'd5' && details.actions.length > 0 ? `${step.label} (${details.actions.length})` : step.label}
-            disabled={!stepReached(status, index)}
+            key={section.key}
+            value={section.key}
+            label={typeof section.label === 'function' ? section.label(tabContext) : section.label}
+            disabled={section.disabled?.(tabContext)}
           />
         ))}
-        <Tab value="documents" label={`Documents${details.documentCount ? ` (${details.documentCount})` : ''}`} />
-        <Tab value="log" label="Log" />
-      </Tabs>
+      </SegmentedTabs>
 
-      {tab === 'registration' && <FirstPageSection complaint={details} />}
-      {tab === 'd4' && <RootCauseSection complaint={details} onMoved={moved} />}
-      {tab === 'd5' && <ActionsSection complaint={details} onMoved={moved} />}
-      {tab === 'd6' && <StepTextSection complaint={details} step="verification" onMoved={moved} />}
-      {tab === 'd7' && <StepTextSection complaint={details} step="horizontalDeployment" onMoved={moved} />}
-      {tab === 'd8' && <StepTextSection complaint={details} step="closure" onMoved={moved} />}
-      {tab === 'documents' && <DocumentsSection complaint={details} canUpload={part.canUpload} />}
-      {tab === 'log' && <LogSection publicId={publicId} />}
+      {renderComplaintDetailTab(tab, tabContext)}
     </>
   );
 }

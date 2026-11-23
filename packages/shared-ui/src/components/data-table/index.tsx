@@ -1,9 +1,14 @@
 import * as React from 'react';
 import type { PageMeta } from '@cyient/api-client';
 import {
+  DEFAULT_PAGE_SIZE_OPTIONS,
+  EMPTY_CELL_FALLBACK,
+  isCellEmpty,
+  PAGINATION_DEFAULTS,
+} from '@cyient/shared-utils';
+import {
   Box,
-  CircularProgress,
-  LinearProgress,
+  Skeleton,
   type SxProps,
   type Theme,
   Tooltip,
@@ -35,11 +40,14 @@ import {
 /** A string with something in it, or undefined (so an empty description falls through to the next choice). */
 const nonEmpty = (value: unknown): string | undefined => (typeof value === 'string' && value !== '' ? value : undefined);
 
+const SKELETON_WIDTH_PRESETS = ['65%', '85%', '50%', '75%', '40%', '90%', '60%'] as const;
+
 export type { DataGridStickyColumnConfig, DataGridStickyColumnSide } from './stickyColumns';
 export { buildDataGridStickyColumnsGridSx } from './stickyColumns';
 export { CustomPagination, type CustomPaginationProps } from '../pagination/CustomPagination';
 export { DataTableHeader, type ActionButton, type DataTableHeaderProps } from './table-header';
 export { CustomDrawer, CustomDrawer as DataTableFilterDrawer, type CustomDrawerProps } from '../custom-drawer';
+export { EMPTY_CELL_FALLBACK, formatCellValue, isCellEmpty } from '@cyient/shared-utils';
 
 export interface DataTableSort {
   field: string;
@@ -51,6 +59,7 @@ export interface DataTableProps<Row extends GridValidRowModel> {
   columns: readonly GridColDef<Row>[];
   getRowId: (row: Row) => string | number;
   loading?: boolean;
+  skeletonRows?: number;
 
   /** Paging from the API's meta; the grid pages on the server. Pages are 1-based, as in the API. */
   page?: number;
@@ -132,11 +141,12 @@ export function DataTable<Row extends GridValidRowModel>({
   columns,
   getRowId,
   loading = false,
+  skeletonRows = 5,
   page,
   pageSize,
   meta,
   totalCount: explicitTotalCount,
-  defaultPageSize = 20,
+  defaultPageSize = PAGINATION_DEFAULTS.DEFAULT_PER_PAGE,
   onPageChange,
   sort,
   onSortChange,
@@ -161,7 +171,7 @@ export function DataTable<Row extends GridValidRowModel>({
   emptyMessage = 'There are currently no records to display.',
   paginationShow = true,
   showPaginationOnEmpty = false,
-  pageSizeOptions = [10, 20, 50, 100],
+  pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
   autoHeight = true,
   disableVirtualization = false,
   gridSx,
@@ -354,14 +364,21 @@ export function DataTable<Row extends GridValidRowModel>({
             ? params.formattedValue
             : params.value;
 
-        if (rendered === null || rendered === undefined || rendered === '') {
-          return null;
+        let displayContent: React.ReactNode;
+        const isContentEmpty = !React.isValidElement(rendered) && isCellEmpty(rendered);
+
+        if (React.isValidElement(rendered)) {
+          displayContent = rendered;
+        } else if (isContentEmpty) {
+          displayContent = EMPTY_CELL_FALLBACK;
+        } else {
+          displayContent = rendered as React.ReactNode;
         }
 
         const tooltipText =
-          typeof rendered === 'string' || typeof rendered === 'number'
+          !isContentEmpty && (typeof rendered === 'string' || typeof rendered === 'number')
             ? String(rendered)
-            : typeof params.value === 'string' || typeof params.value === 'number'
+            : !isContentEmpty && (typeof params.value === 'string' || typeof params.value === 'number')
               ? String(params.value)
               : '';
 
@@ -376,16 +393,18 @@ export function DataTable<Row extends GridValidRowModel>({
                     whiteSpace: 'nowrap',
                     display: 'inline-block',
                     maxWidth: '100%',
+                    color: isContentEmpty ? 'text.secondary' : undefined,
                   }
                 : {
                     whiteSpace: 'normal',
                     wordBreak: 'break-word',
                     display: 'inline-block',
                     maxWidth: '100%',
+                    color: isContentEmpty ? 'text.secondary' : undefined,
                   }
             }
           >
-            {rendered as React.ReactNode}
+            {displayContent}
           </Box>
         );
 
@@ -494,10 +513,48 @@ export function DataTable<Row extends GridValidRowModel>({
     [getRowId],
   );
 
+  const DataGridSkeletonOverlay = React.useCallback(
+    () => (
+      <Box
+        data-testid="datagrid-skeleton-overlay"
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.65)' : 'rgba(255, 255, 255, 0.75)',
+          backdropFilter: 'blur(1px)',
+          zIndex: 5,
+          display: 'flex',
+          flexDirection: 'column',
+          p: 1.5,
+          gap: 1.25,
+          pointerEvents: 'none',
+        }}
+      >
+        {Array.from({ length: skeletonRows }).map((_, i) => (
+          <Skeleton
+            key={`overlay-skeleton-${i}`}
+            variant="rounded"
+            height={rowHeight ? rowHeight - 12 : 36}
+            animation="wave"
+            sx={{ width: '100%', borderRadius: 1 }}
+          />
+        ))}
+      </Box>
+    ),
+    [skeletonRows, rowHeight],
+  );
+
+  let contentElement: React.ReactElement;
+
   if (rows.length === 0) {
-    return (
+    contentElement = (
       <Box
         aria-label={ariaLabel}
+        data-testid={loading ? 'data-table-skeleton' : undefined}
         sx={[
           {
             borderRadius: 2,
@@ -515,88 +572,156 @@ export function DataTable<Row extends GridValidRowModel>({
           ...sxList(sx),
         ]}
       >
-        {/* One scroll area for the header and the message, so the scrollbar sits at the table's bottom edge */}
+        {/* One scroll area for the header and the message / skeleton, so the scrollbar sits at the table's bottom edge */}
         <Box sx={{ overflowX: 'auto' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: 'var(--mui-palette-header-bg, #ebf5fa)',
-            borderBottom: '1px solid #d4e7f2',
-            minHeight: 48,
-            width: '100%',
-            minWidth: 'max-content',
-            '[data-mui-color-scheme="dark"] &': {
-              backgroundColor: '#111e2e',
-              borderColor: '#1e3a5f',
-            },
-          }}
-        >
-          {checkboxSelection && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: 'var(--mui-palette-header-bg, #ebf5fa)',
+              borderBottom: '1px solid #d4e7f2',
+              minHeight: 48,
+              width: '100%',
+              minWidth: 'max-content',
+              '[data-mui-color-scheme="dark"] &': {
+                backgroundColor: '#111e2e',
+                borderColor: '#1e3a5f',
+              },
+            }}
+          >
+            {checkboxSelection && (
+              <Box
+                sx={{
+                  width: 50,
+                  minWidth: 50,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRight: '1px solid #d4e7f2',
+                  py: 1.5,
+                  '[data-mui-color-scheme="dark"] &': {
+                    borderColor: '#1e3a5f',
+                  },
+                }}
+              />
+            )}
+            {columns.map((col, idx) => (
+              <Box
+                key={col.field}
+                sx={{
+                  flex: col.flex ?? (col.width ? undefined : 1),
+                  width: col.width,
+                  minWidth: col.minWidth ?? (col.width ? undefined : 100),
+                  px: 2,
+                  py: 1.5,
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  color: 'var(--mui-palette-text-primary, #334155)',
+                  borderRight: idx < columns.length - 1 ? '1px solid #d4e7f2' : 'none',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  '[data-mui-color-scheme="dark"] &': {
+                    color: '#cbd5e1',
+                    borderColor: '#1e3a5f',
+                  },
+                }}
+              >
+                {col.headerName ?? col.field}
+              </Box>
+            ))}
+          </Box>
+
+          {loading ? (
+            <Box data-testid="skeleton-rows" sx={{ width: '100%', minWidth: 'max-content' }}>
+              {Array.from({ length: skeletonRows }).map((_, rowIdx) => (
+                <Box
+                  key={`skeleton-row-${rowIdx}`}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    minHeight: rowHeight ?? 48,
+                    height: rowHeight ?? 48,
+                    width: '100%',
+                    minWidth: 'max-content',
+                    borderBottom: rowIdx < skeletonRows - 1 ? '1px solid #edf2f7' : 'none',
+                    backgroundColor: 'background.paper',
+                    '[data-mui-color-scheme="dark"] &': {
+                      borderColor: '#1e3a5f',
+                    },
+                  }}
+                >
+                  {checkboxSelection && (
+                    <Box
+                      sx={{
+                        width: 50,
+                        minWidth: 50,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRight: '1px solid #d4e7f2',
+                        px: 1.5,
+                        '[data-mui-color-scheme="dark"] &': {
+                          borderColor: '#1e3a5f',
+                        },
+                      }}
+                    >
+                      <Skeleton
+                        variant="rounded"
+                        width={18}
+                        height={18}
+                        animation="wave"
+                        sx={{ borderRadius: 0.5 }}
+                      />
+                    </Box>
+                  )}
+                  {columns.map((col, colIdx) => (
+                    <Box
+                      key={`skeleton-cell-${rowIdx}-${col.field}`}
+                      sx={{
+                        flex: col.flex ?? (col.width ? undefined : 1),
+                        width: col.width,
+                        minWidth: col.minWidth ?? (col.width ? undefined : 100),
+                        px: 2,
+                        py: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderRight: colIdx < columns.length - 1 ? '1px solid #d4e7f2' : 'none',
+                        '[data-mui-color-scheme="dark"] &': {
+                          borderColor: '#1e3a5f',
+                        },
+                      }}
+                    >
+                      <Skeleton
+                        variant="rounded"
+                        height={16}
+                        width={SKELETON_WIDTH_PRESETS[(rowIdx * 3 + colIdx) % SKELETON_WIDTH_PRESETS.length]}
+                        animation="wave"
+                        sx={{ borderRadius: 1 }}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          ) : (
             <Box
               sx={{
-                width: 50,
-                minWidth: 50,
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRight: '1px solid #d4e7f2',
-                py: 1.5,
-                '[data-mui-color-scheme="dark"] &': {
-                  borderColor: '#1e3a5f',
-                },
-              }}
-            />
-          )}
-          {columns.map((col, idx) => (
-            <Box
-              key={col.field}
-              sx={{
-                flex: col.flex ?? (col.width ? undefined : 1),
-                width: col.width,
-                minWidth: col.minWidth ?? (col.width ? undefined : 100),
+                minHeight: 240,
+                py: 6,
                 px: 2,
-                py: 1.5,
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                color: 'var(--mui-palette-text-primary, #334155)',
-                borderRight: idx < columns.length - 1 ? '1px solid #d4e7f2' : 'none',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                '[data-mui-color-scheme="dark"] &': {
-                  color: '#cbd5e1',
-                  borderColor: '#1e3a5f',
-                },
+                backgroundColor: 'background.paper',
+                position: 'sticky',
+                left: 0,
               }}
             >
-              {col.headerName ?? col.field}
+              <EmptyState title={emptyTitle} message={emptyMessage} />
             </Box>
-          ))}
-        </Box>
-
-        {loading && <LinearProgress sx={{ height: 2, position: 'sticky', left: 0 }} />}
-
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 240,
-            py: 6,
-            px: 2,
-            backgroundColor: 'background.paper',
-            position: 'sticky',
-            left: 0,
-          }}
-        >
-          {loading ? (
-            <CircularProgress size={32} />
-          ) : (
-            <EmptyState title={emptyTitle} message={emptyMessage} />
           )}
-        </Box>
         </Box>
 
         {showPaginationOnEmpty && (
@@ -612,48 +737,50 @@ export function DataTable<Row extends GridValidRowModel>({
         )}
       </Box>
     );
-  }
-
-  const gridElement = (
-    <DataGrid<Row>
-      aria-label={ariaLabel}
-      rows={rows}
-      columns={processedColumns}
-      getRowId={safeGetRowId}
-      loading={loading}
-      autoHeight={autoHeight}
-      paginationMode="server"
-      sortingMode="server"
-      rowCount={totalRows}
-      paginationModel={{ page: Math.max(0, currentPage - 1), pageSize: currentPageSize }}
-      sortModel={sortModel}
-      onSortModelChange={(model, details) => {
-        onSortModelChange?.(model, details);
-        const first = model[0];
-        onSortChange?.(first?.sort ? { field: first.field, descending: first.sort === 'desc' } : null);
-      }}
-      disableColumnFilter
-      disableColumnMenu
-      disableVirtualization={disableVirtualization || freezeLeftColumnsCount > 0 || freezeRightColumnsCount > 0}
-      rowHeight={rowHeight ?? 48}
-      columnHeaderHeight={48}
-      checkboxSelection={checkboxSelection}
-      rowSelectionModel={rowSelectionModel}
-      onRowSelectionModelChange={handleSelectionModelChange}
-      keepNonExistentRowsSelected={keepNonExistentRowsSelected}
-      getRowClassName={getRowClassName}
-      isRowSelectable={isRowSelectable}
-      onRowClick={onRowClick ? (params: GridRowParams<Row>) => { onRowClick(params.row); } : undefined}
-      slots={{
-        noRowsOverlay: NoRowsOverlay,
-        footer: CustomFooter,
-      }}
+  } else {
+    contentElement = (
+      <DataGrid<Row>
+        aria-label={ariaLabel}
+        rows={rows}
+        columns={processedColumns}
+        getRowId={safeGetRowId}
+        loading={loading}
+        autoHeight={autoHeight}
+        paginationMode="server"
+        sortingMode="server"
+        rowCount={totalRows}
+        paginationModel={{ page: Math.max(0, currentPage - 1), pageSize: currentPageSize }}
+        sortModel={sortModel}
+        onSortModelChange={(model, details) => {
+          onSortModelChange?.(model, details);
+          const first = model[0];
+          onSortChange?.(first?.sort ? { field: first.field, descending: first.sort === 'desc' } : null);
+        }}
+        disableColumnFilter
+        disableColumnMenu
+        disableVirtualization={disableVirtualization || freezeLeftColumnsCount > 0 || freezeRightColumnsCount > 0}
+        rowHeight={rowHeight ?? 48}
+        columnHeaderHeight={48}
+        checkboxSelection={checkboxSelection}
+        rowSelectionModel={rowSelectionModel}
+        onRowSelectionModelChange={handleSelectionModelChange}
+        keepNonExistentRowsSelected={keepNonExistentRowsSelected}
+        getRowClassName={getRowClassName}
+        isRowSelectable={isRowSelectable}
+        onRowClick={onRowClick ? (params: GridRowParams<Row>) => { onRowClick(params.row); } : undefined}
+        slots={{
+          noRowsOverlay: NoRowsOverlay,
+          loadingOverlay: DataGridSkeletonOverlay,
+          footer: CustomFooter,
+        }}
       sx={[
         {
           borderRadius: 2,
           border: '1px solid #d4e7f2',
           overflow: 'hidden',
           backgroundColor: 'background.paper',
+          // MUI makes the grid fill whatever height its parent has; a table that sizes to its rows must not stretch
+          ...(autoHeight ? { flex: '0 0 auto' } : {}),
           '& .MuiDataGrid-main': {
             minHeight: rows.length === 0 ? 240 : undefined,
           },
@@ -742,7 +869,8 @@ export function DataTable<Row extends GridValidRowModel>({
         ...sxList(sx),
       ] as SxProps<Theme>}
     />
-  );
+    );
+  }
 
   const hasHeaderContent =
     showHeader ??
@@ -798,13 +926,13 @@ export function DataTable<Row extends GridValidRowModel>({
   ) : null;
 
   if (!hasHeaderContent && !renderedFilterDrawer) {
-    return gridElement;
+    return contentElement;
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       {renderedHeader}
-      {gridElement}
+      {contentElement}
       {renderedFilterDrawer}
     </Box>
   );

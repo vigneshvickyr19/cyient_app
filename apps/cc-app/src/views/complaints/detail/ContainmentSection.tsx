@@ -12,7 +12,6 @@ import {
   SimpleTable,
   StatusChip,
   useActionFailure,
-  type Option,
   type PersonOption,
   type SimpleColumn,
 } from '@cyient/shared-ui';
@@ -26,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import { ccTags } from '@/api-callers/api-tags';
 import { useDeleteContainment, useSaveContainment } from '@/hooks/complaints/mutations';
 import { actionStatusInfo } from '@/constants/complaint-status';
+import { CONTAINMENT_STATUS_OPTIONS } from '@/constants/static-dropdowns';
 import { STATUS_ACTIONS } from '@/constants/status-actions';
 
 interface ContainmentFormValues {
@@ -33,11 +33,6 @@ interface ContainmentFormValues {
   responsible: PersonOption | null;
   status: ActionStatus;
 }
-
-const statuses: Option<ActionStatus>[] = [
-  { value: STATUS_ACTIONS.CLOSED, label: 'Done' },
-  { value: STATUS_ACTIONS.OPEN, label: 'Still open' },
-];
 
 const serverFieldNames = { responsibleUserId: 'responsible' } as const;
 
@@ -95,7 +90,7 @@ function ContainmentDialog({ publicId, line, onClose }: { publicId: string; line
             rules={{ required: 'The containment action is required.', ...maxLength(4000, 'The containment action') }}
           />
           <FormPeoplePicker<ContainmentFormValues> name="responsible" label="Responsible person" rules={{ required: 'The responsible person is required.' }} />
-          <FormRadioGroup<ContainmentFormValues, ActionStatus> name="status" label="Status" options={statuses} rules={required('Status')} />
+          <FormRadioGroup<ContainmentFormValues, ActionStatus> name="status" label="Status" options={CONTAINMENT_STATUS_OPTIONS} rules={required('Status')} />
         </Stack>
       </Form>
     </Modal>

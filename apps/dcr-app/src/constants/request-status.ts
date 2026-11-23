@@ -1,5 +1,5 @@
 import type { DcrStatus, ReleasedStatus } from '@cyient/api-client/dcr';
-import type { Option, Tone } from '@cyient/shared-ui';
+import type { Tone } from '@cyient/shared-ui';
 import { STATUS_ACTIONS } from './status-actions';
 
 export { STATUS_ACTIONS };
@@ -24,16 +24,6 @@ export const releasedInfo: Record<ReleasedStatus, { label: string; tone: Tone }>
   [STATUS_ACTIONS.NOT_YET_RELEASED]: { label: 'Not yet released', tone: 'neutral' },
   [STATUS_ACTIONS.RELEASED]: { label: 'Released', tone: 'success' },
 };
-
-export const statusOptions: Option<DcrStatus>[] = (Object.keys(statusInfo) as DcrStatus[]).map((value) => ({
-  value,
-  label: statusInfo[value].label,
-}));
-
-export const releasedOptions: Option<ReleasedStatus>[] = (Object.keys(releasedInfo) as ReleasedStatus[]).map((value) => ({
-  value,
-  label: releasedInfo[value].label,
-}));
 
 export const isDcrStatus = (value: string | undefined): value is DcrStatus => value !== undefined && value in statusInfo;
 export const isReleasedStatus = (value: string | undefined): value is ReleasedStatus => value !== undefined && value in releasedInfo;
