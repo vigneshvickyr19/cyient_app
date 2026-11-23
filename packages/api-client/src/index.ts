@@ -10,4 +10,5 @@ export {
   type HttpMethod,
   type HttpRequestOptions,
 } from './http';
+export { withoutPaging } from './query';
 export { createApiClient, type ApiClient, type OperationOptions, type PathsWith, type ResponseData } from './typed';

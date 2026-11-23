@@ -3,13 +3,12 @@ import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, use, useState, type ReactNode } from 'react';
 import { usePlatformApi } from '../api/HttpClientContext';
-import { platformKeys } from '../api/platformKeys';
-import { ErrorState } from '../components/ErrorState';
-import { PageLoader } from '../components/Loader';
+import { platformTags } from '../api/api-tags';
+import { ErrorState } from '../components/error-state';
+import { PageLoader } from '../components/loader';
 import { errorMessage } from '../errors/errorMessage';
 import type { AuthMode, AuthSession } from './session';
-
-import { getStaticDevUser } from './defaultStaticUser';
+import { platformEndpoints } from '../api/api-endpoints';
 
 /** The signed-in person as this app's API knows them: roles and permission codes come from the app's own database. */
 export type CurrentUser = MeResponse;
@@ -37,9 +36,10 @@ export function AuthProvider({ session, children }: { session: AuthSession; chil
   const api = usePlatformApi();
   const queryClient = useQueryClient();
   const [devLogin, setDevLogin] = useState(() => session.development?.login() ?? null);
+  const [signedOut, setSignedOut] = useState(false);
 
   const signedIn = useQuery({
-    queryKey: platformKeys.session(),
+    queryKey: platformTags.session(),
     queryFn: async () => {
       await session.initialise();
       return true;
@@ -49,17 +49,8 @@ export function AuthProvider({ session, children }: { session: AuthSession; chil
   });
 
   const me = useQuery({
-    queryKey: [...platformKeys.me(), devLogin],
-    queryFn: async ({ signal }) => {
-      try {
-        return (await api.get<MeResponse>('/api/v1/me', { signal })).data;
-      } catch (err) {
-        if (err && typeof err === 'object' && 'status' in err && (err.status === 401 || err.status === 403)) {
-          throw err;
-        }
-        return getStaticDevUser(devLogin);
-      }
-    },
+    queryKey: platformTags.meAs(devLogin),
+    queryFn: async ({ signal }) => (await api.get(platformEndpoints.account.me, { signal })).data,
     enabled: signedIn.isSuccess,
     staleTime: 60_000,
   });
@@ -70,6 +61,17 @@ export function AuthProvider({ session, children }: { session: AuthSession; chil
     // Everything cached belongs to the previous person
     void queryClient.resetQueries();
   };
+
+  if (signedOut) {
+    return (
+      <SignedOut
+        onSignIn={(login) => {
+          switchUser(login);
+          setSignedOut(false);
+        }}
+      />
+    );
+  }
 
   if (signedIn.isError) {
     return <ErrorState title="Sign-in failed" message={errorMessage(signedIn.error)} onRetry={() => void signedIn.refetch()} fullPage />;
@@ -99,7 +101,15 @@ export function AuthProvider({ session, children }: { session: AuthSession; chil
     user,
     can: (permission) => permissions.has(permission),
     canAny: (...codes) => codes.some((code) => permissions.has(code)),
-    signOut: () => void session.signOut(),
+    signOut: () => {
+      if (!session.development) {
+        void session.signOut();
+        return;
+      }
+      // Development sign-in has no session to end: forget the login and ask who to act as next
+      switchUser(null);
+      setSignedOut(true);
+    },
     refresh: () => void me.refetch(),
     development: session.development ? { login: devLogin, switchUser } : null,
   };
@@ -108,7 +118,7 @@ export function AuthProvider({ session, children }: { session: AuthSession; chil
 }
 
 /** Development only: lets the developer act as another sample person when the current one has no account. */
-function DevLoginReset({ onSubmit }: { onSubmit: (login: string | null) => void }) {
+function DevLoginReset({ onSubmit, submitLabel = 'Switch' }: { onSubmit: (login: string | null) => void; submitLabel?: string }) {
   const [login, setLogin] = useState('');
   return (
     <Box
@@ -123,11 +133,23 @@ function DevLoginReset({ onSubmit }: { onSubmit: (login: string | null) => void 
       </Typography>
       <Stack direction="row" spacing={1}>
         <TextField label="Login (X-Dev-User)" placeholder="CYIENTDLM\requester" value={login} onChange={(e) => { setLogin(e.target.value); }} />
-        <Button type="submit" variant="contained">
-          Switch
+        <Button type="submit" variant="contained" sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+          {submitLabel}
         </Button>
       </Stack>
     </Box>
+  );
+}
+
+/** Development sign-in after "Sign out": who to act as next. Empty is the API's default user. */
+function SignedOut({ onSignIn }: { onSignIn: (login: string | null) => void }) {
+  return (
+    <Stack spacing={2} sx={{ minHeight: '100vh', justifyContent: 'center', alignItems: 'center', p: 3 }}>
+      <Typography variant="h5" component="h1">
+        You have signed out
+      </Typography>
+      <DevLoginReset onSubmit={onSignIn} submitLabel="Sign in" />
+    </Stack>
   );
 }
 

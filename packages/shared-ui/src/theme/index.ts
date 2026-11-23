@@ -6,6 +6,7 @@ import { typography } from './typography';
 
 export { colors } from './colors';
 export { layout } from './breakpoints';
+export { serifFontFamily, sansFontFamily, typography } from './typography';
 
 /**
  * The theme of every app: light and dark colour schemes (following the device unless the user picks one), with

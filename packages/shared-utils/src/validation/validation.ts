@@ -1,4 +1,4 @@
-import { businessToday, isIsoDate } from '../dates';
+import { businessToday } from '../dates';
 
 /**
  * Validators for React Hook Form's `validate` option (or anything else): each returns true when the value is
@@ -30,11 +30,6 @@ export const notBlank =
   (value) =>
     isEmpty(value) || (typeof value === 'string' && value.trim().length > 0) || requiredMessage(label);
 
-export const isEmail: Validator = (value) =>
-  isEmpty(value) || (typeof value === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) || 'Enter a valid email address.';
-
-export const isDate: Validator = (value) => isEmpty(value) || (typeof value === 'string' && isIsoDate(value)) || 'Enter a valid date.';
-
 /** A yyyy-MM-dd date that is today or later, in the business time zone. */
 export const notInPast =
   (label: string, today: () => string = businessToday): Validator =>
@@ -46,19 +41,6 @@ export const notInFuture =
   (label: string, today: () => string = businessToday): Validator =>
   (value) =>
     isEmpty(value) || (typeof value === 'string' && value <= today()) || `${label} cannot be in the future.`;
-
-/** A date on or after another date of the form (for example a "to" date after its "from" date). */
-export const notBefore =
-  (other: () => string | null | undefined, message: string): Validator =>
-  (value) => {
-    const start = other();
-    return isEmpty(value) || !start || (typeof value === 'string' && value >= start) || message;
-  };
-
-export const positiveNumber =
-  (label: string): Validator =>
-  (value) =>
-    isEmpty(value) || (Number.isFinite(Number(value)) && Number(value) > 0) || `${label} must be more than zero.`;
 
 export const wholeNumber =
   (label: string): Validator =>

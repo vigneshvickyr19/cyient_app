@@ -26,6 +26,8 @@ export function createEslintConfig({ tsconfigRootDir, kind = 'library' }) {
       plugins: { 'react-hooks': reactHooks },
       rules: {
         ...reactHooks.configs.recommended.rules,
+        // `api` is the app's API client (a handle on the HTTP client, not data that changes a result), so it is not part of a query key
+        '@tanstack/query/exhaustive-deps': ['error', { allowlist: { variables: ['api'] } }],
         '@typescript-eslint/no-explicit-any': 'error',
         '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
         '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

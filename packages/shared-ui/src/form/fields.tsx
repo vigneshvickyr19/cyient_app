@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react';
 import { Controller, useFormContext, type FieldPath, type FieldValues, type RegisterOptions } from 'react-hook-form';
-import { DateField } from '../components/DateField';
-import { FileUpload } from '../components/FileUpload';
-import { CheckboxField, Dropdown, Input, RadioGroupField, TextArea, type Option } from '../components/inputs';
-import { PeopleListPicker } from '../components/PeopleListPicker';
-import { PeoplePicker, type PersonOption } from '../components/PeoplePicker';
+import { CustomDatePicker as DateField } from '../components/custom-date-picker';
+import { FileUpload } from '../components/file-upload';
+import { CustomCheckbox as CheckboxField } from '../components/custom-checkbox';
+import { CustomSelect as Dropdown, type Option } from '../components/custom-select';
+import { CustomInput as Input, CustomTextArea as TextArea } from '../components/custom-input';
+import { CustomRadioGroup as RadioGroupField } from '../components/custom-radio';
+import { PeopleListPicker } from '../components/people-list-picker';
+import { PeoplePicker, type PersonOption } from '../components/people-picker';
 
 /** Validation rules for a field: required, maxLength, validate... (never Zod). */
 export type FieldRules<T extends FieldValues, N extends FieldPath<T>> = Omit<
@@ -88,7 +91,8 @@ export function FormTextArea<T extends FieldValues, N extends FieldPath<T> = Fie
   helperText,
   error,
   minRows,
-}: FieldProps<T, N> & { minRows?: number }) {
+  placeholder,
+}: FieldProps<T, N> & { minRows?: number; placeholder?: string }) {
   const { control } = useFormContext<T>();
   return (
     <Controller
@@ -101,6 +105,7 @@ export function FormTextArea<T extends FieldValues, N extends FieldPath<T> = Fie
           name={field.name}
           label={label}
           minRows={minRows}
+          placeholder={placeholder}
           value={typeof field.value === 'string' ? field.value : ''}
           onChange={field.onChange}
           onBlur={field.onBlur}
@@ -124,7 +129,8 @@ export function FormDropdown<T extends FieldValues, V extends string | number, N
   error,
   options,
   emptyLabel,
-}: FieldProps<T, N> & { options: readonly Option<V>[]; emptyLabel?: string }) {
+  placeholder,
+}: FieldProps<T, N> & { options: readonly Option<V>[]; emptyLabel?: string; placeholder?: string }) {
   const { control } = useFormContext<T>();
   return (
     <Controller
@@ -137,6 +143,7 @@ export function FormDropdown<T extends FieldValues, V extends string | number, N
           name={field.name}
           label={label}
           options={options}
+          placeholder={placeholder}
           emptyLabel={emptyLabel}
           value={field.value ?? null}
           onChange={field.onChange}

@@ -11,6 +11,7 @@ import { createQueryClient } from '../api/queryClient';
 import { AuthProvider } from '../auth/AuthProvider';
 import type { AuthSession } from '../auth/session';
 import { ErrorBoundary } from '../errors/ErrorBoundary';
+import { MutationToasts } from '../notifications/MutationToasts';
 import { NotificationProvider } from '../notifications/NotificationProvider';
 import { createAppTheme } from '../theme';
 
@@ -43,6 +44,7 @@ export function AppProviders({ session, http, queryClient, theme = defaultTheme,
           <QueryClientProvider client={client}>
             <HttpClientProvider client={http}>
               <NotificationProvider>
+                <MutationToasts />
                 <AuthProvider session={session}>{children}</AuthProvider>
               </NotificationProvider>
             </HttpClientProvider>

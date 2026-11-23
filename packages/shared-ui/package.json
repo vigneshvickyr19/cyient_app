@@ -7,7 +7,8 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./test": "./src/test/index.tsx"
+    "./test": "./src/test/index.tsx",
+    "./admin": "./src/admin/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

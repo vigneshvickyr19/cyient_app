@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react';
+import path from 'node:path';
 import { defineConfig, loadEnv } from 'vite';
 
 /** Libraries grouped into long-cached chunks, by the package a module comes from (wherever it is installed). */
@@ -27,13 +28,23 @@ export function createAppConfig({ port, basePath }) {
     const env = loadEnv(mode, process.cwd(), 'VITE_');
     const base = `/${(env.VITE_BASE_PATH || basePath).replace(/^\/+|\/+$/g, '')}/`;
 
+    // The APIs send no CORS headers for the dev origins, so in development (and `vite preview`) the dev server forwards
+    // /api to the real API and the app calls its own address. Set VITE_API_PROXY_TARGET (see .env.development).
+    const apiProxy = env.VITE_API_PROXY_TARGET
+      ? { '/api': { target: env.VITE_API_PROXY_TARGET, changeOrigin: true } }
+      : undefined;
+
     return {
       base,
       plugins: [react()],
-      // One copy of each library that holds React state, whichever package imports it
-      resolve: { dedupe: ['react', 'react-dom', 'react-router', '@emotion/react', '@mui/material', '@tanstack/react-query', 'react-hook-form'] },
-      server: { port, strictPort: true },
-      preview: { port, strictPort: true },
+      resolve: {
+        // `@/…` is the app's own src folder (each app's tsconfig has the matching `paths`)
+        alias: [{ find: /^@\//, replacement: `${path.resolve(process.cwd(), 'src')}/` }],
+        // One copy of each library that holds React state, whichever package imports it
+        dedupe: ['react', 'react-dom', 'react-router', '@emotion/react', '@mui/material', '@tanstack/react-query', 'react-hook-form'],
+      },
+      server: { port, strictPort: true, proxy: apiProxy },
+      preview: { port, strictPort: true, proxy: apiProxy },
       build: {
         outDir: 'dist',
         sourcemap: true,

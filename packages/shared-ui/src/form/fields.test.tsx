@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@cyient/api-client';
 import { required } from '@cyient/shared-utils';
-import { Button } from '../components/Button';
+import { Button } from '../components/button';
 import { renderWithProviders } from '../test';
 import { FormDropdown, FormInput } from './fields';
 import { applyServerErrors, Form } from './Form';

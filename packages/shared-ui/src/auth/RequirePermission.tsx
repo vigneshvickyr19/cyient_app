@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ErrorState } from '../components/ErrorState';
+import { ErrorState } from '../components/error-state';
 import { useAuth } from './AuthProvider';
 
 interface RequirePermissionProps {

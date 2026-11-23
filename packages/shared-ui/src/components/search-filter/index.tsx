@@ -1,0 +1,94 @@
+import FilterAltOffOutlinedIcon from '@mui/icons-material/FilterAltOffOutlined';
+import SearchIcon from '@mui/icons-material/Search';
+import { Box, Button, Paper, Stack } from '@mui/material';
+import { useRef, useState, type ReactNode } from 'react';
+import { CustomInput } from '../custom-input';
+
+export interface SearchFieldProps {
+  value: string;
+  /** Called after typing pauses (debounced), and at once on Enter. */
+  onSearch: (value: string) => void;
+  label?: string;
+  placeholder?: string;
+  delayMs?: number;
+}
+
+/** A search box that waits for the user to stop typing before searching. */
+export function SearchField({ value, onSearch, label = 'Search', placeholder, delayMs = 400 }: SearchFieldProps) {
+  const [text, setText] = useState(value);
+  const [synced, setSynced] = useState(value);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // The search was changed elsewhere (for example "Clear filters")
+  if (value !== synced) {
+    setSynced(value);
+    setText(value);
+  }
+
+  const run = (next: string) => {
+    clearTimeout(timer.current);
+    if (next.trim() !== value) onSearch(next.trim());
+  };
+
+  return (
+    // A wider slot than the other filters, so the placeholder is readable; && outranks the bar's own sizing of its children
+    <Box sx={{ '&&': { minWidth: { sm: 240 }, flex: { sm: '2 1 260px' } } }}>
+      <CustomInput
+        label={label}
+        placeholder={placeholder}
+        value={text}
+        clearable
+        startAdornment={<SearchIcon fontSize="small" />}
+        onChange={(next) => {
+          setText(next);
+          clearTimeout(timer.current);
+          if (next === '') run('');
+          else timer.current = setTimeout(() => { run(next); }, delayMs);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            run(text);
+          }
+        }}
+      />
+    </Box>
+  );
+}
+
+export interface FilterBarProps {
+  children: ReactNode;
+  /** Shows "Clear filters" when any filter is set. */
+  onClear?: () => void;
+  active?: boolean;
+  /** Buttons on the right, for example Export. */
+  actions?: ReactNode;
+}
+
+/** The row of filters above a list; wraps onto several lines on small screens. */
+export function FilterBar({ children, onClear, active = false, actions }: FilterBarProps) {
+  return (
+    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} sx={{ alignItems: { lg: 'center' } }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          useFlexGap
+          sx={{ flex: 1, flexWrap: 'wrap', '& > *': { minWidth: { sm: 180 }, flex: { sm: '1 1 180px' } } }}
+        >
+          {children}
+        </Stack>
+        {(onClear ?? actions) && (
+          <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
+            {onClear && active && (
+              <Button onClick={onClear} startIcon={<FilterAltOffOutlinedIcon />}>
+                Clear filters
+              </Button>
+            )}
+            {actions}
+          </Stack>
+        )}
+      </Stack>
+    </Paper>
+  );
+}

@@ -18,13 +18,14 @@ import {
   Stack,
   Tooltip,
   Typography,
+  type PopoverOrigin,
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useAuth } from '../auth/AuthProvider';
-import { Input } from '../components/inputs';
-import { Modal } from '../components/Modal';
-import { Button } from '../components/Button';
+import { CustomInput as Input } from '../components/custom-input';
+import { Modal } from '../components/modal';
+import { Button } from '../components/button';
 
 /** A sample person to act as with development sign-in (the API's Docker sample data). */
 export interface DevUser {
@@ -34,9 +35,24 @@ export interface DevUser {
   role?: string;
 }
 
+export interface UserMenuProps {
+  devUsers?: readonly DevUser[];
+  anchorOrigin?: PopoverOrigin;
+  transformOrigin?: PopoverOrigin;
+  children?: (props: {
+    onClick: (event: React.MouseEvent<HTMLElement>) => void;
+    open: boolean;
+  }) => ReactNode;
+}
+
 /** The signed-in person: roles, light or dark mode, switching person (development) and signing out. */
-export function UserMenu({ devUsers = [] }: { devUsers?: readonly DevUser[] }) {
-  const { user, mode, signOut, development } = useAuth();
+export function UserMenu({
+  devUsers = [],
+  anchorOrigin,
+  transformOrigin,
+  children,
+}: UserMenuProps) {
+  const { user, signOut, development } = useAuth();
   const { mode: colorMode, systemMode, setMode } = useColorScheme();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const [switching, setSwitching] = useState(false);
@@ -46,20 +62,46 @@ export function UserMenu({ devUsers = [] }: { devUsers?: readonly DevUser[] }) {
     setAnchor(null);
   };
 
+  const isOpen = Boolean(anchor);
+
   return (
     <>
-      <Tooltip title={user.displayName ?? 'Account'}>
-        <IconButton
-          aria-label="Account"
-          aria-haspopup="menu"
-          onClick={(event) => {
-            setAnchor(event.currentTarget);
-          }}
-        >
-          <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: 'primary.main' }}>{initials(user.displayName)}</Avatar>
-        </IconButton>
-      </Tooltip>
-      <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={close} slotProps={{ paper: { sx: { width: 300 } } }}>
+      {children ? (
+        children({
+          onClick: (event) => setAnchor(event.currentTarget),
+          open: isOpen,
+        })
+      ) : (
+        <Tooltip title={user.displayName ?? 'Account'}>
+          <IconButton
+            aria-label="Account"
+            aria-haspopup="menu"
+            onClick={(event) => {
+              setAnchor(event.currentTarget);
+            }}
+          >
+            <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: 'primary.main' }}>
+              {initials(user.displayName)}
+            </Avatar>
+          </IconButton>
+        </Tooltip>
+      )}
+      <Menu
+        anchorEl={anchor}
+        open={isOpen}
+        onClose={close}
+        anchorOrigin={anchorOrigin ?? { vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={transformOrigin ?? { vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: 300,
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+              borderRadius: 2,
+            },
+          },
+        }}
+      >
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="subtitle1">{user.displayName}</Typography>
           {development && (
@@ -95,14 +137,17 @@ export function UserMenu({ devUsers = [] }: { devUsers?: readonly DevUser[] }) {
             Act as someone else
           </MenuItem>
         )}
-        {mode === 'entra' && (
-          <MenuItem onClick={signOut}>
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            Sign out
-          </MenuItem>
-        )}
+        <MenuItem
+          onClick={() => {
+            close();
+            signOut();
+          }}
+        >
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          Sign out
+        </MenuItem>
       </Menu>
       {development && (
         <SwitchUserDialog
