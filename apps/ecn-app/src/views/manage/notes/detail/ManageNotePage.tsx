@@ -12,17 +12,16 @@ import {
   SimpleTable,
   StatusChip,
   useAuth,
-  } from '@cyient/shared-ui';
+  useTabState,
+} from '@cyient/shared-ui';
 import { daysSince, formatDateTime } from '@cyient/shared-utils';
 import { useState } from 'react';
-import { useParams, useSearchParams } from 'react-router';
+import { useParams } from 'react-router';
 import { permissions } from '@/constants/permissions';
 import { useNote } from '@/hooks/notes/queries';
 import { stageLabel, STATUS_ACTIONS, statusInfo, typeLabels } from '@/constants/note-status';
+import { DEFAULT_RECORD_HISTORY_TAB, RECORD_HISTORY_TABS, type RecordHistoryTab } from '@/constants/tab-sections';
 import { useCancelNote, useNoteRecord, useOpenTasks } from '@/hooks/manage/queries';
-
-const tabs = ['history', 'emails', 'audit', 'tasks'] as const;
-type TabName = (typeof tabs)[number];
 
 function TasksTab({ publicId }: { publicId: string }) {
   const tasks = useOpenTasks({ PublicId: publicId, PageSize: 100 });
@@ -49,12 +48,14 @@ function TasksTab({ publicId }: { publicId: string }) {
 export function ManageNotePage() {
   const { publicId = '' } = useParams();
   const { can } = useAuth();
-  const [params, setParams] = useSearchParams();
+  const { activeTab: tab, setTab } = useTabState<RecordHistoryTab>({
+    defaultTab: DEFAULT_RECORD_HISTORY_TAB,
+    validTabs: RECORD_HISTORY_TABS,
+  });
   const note = useNote(publicId);
   const cancel = useCancelNote(publicId);
   const record = useNoteRecord(publicId);
   const [cancelling, setCancelling] = useState(false);
-  const tab: TabName = tabs.find((name) => name === params.get('tab')) ?? 'history';
 
   if (note.isPending) return <PageLoader />;
   if (note.isError) return <ErrorState message={errorMessage(note.error)} onRetry={() => void note.refetch()} />;
@@ -86,9 +87,7 @@ export function ManageNotePage() {
         {...record}
         formatStage={stageLabel}
         tab={tab}
-        onTabChange={(value) => {
-          setParams(value === 'history' ? {} : { tab: value }, { replace: true });
-        }}
+        onTabChange={setTab}
         extraTabs={[{ value: 'tasks', label: 'Open tasks', anyOf: [permissions.manageTasks], content: <TasksTab publicId={publicId} /> }]}
       />
 

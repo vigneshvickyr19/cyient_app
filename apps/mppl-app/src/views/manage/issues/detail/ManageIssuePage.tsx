@@ -9,12 +9,14 @@ import {
   RecordHistoryTabs,
   StatusChip,
   useActionFailure,
+  useTabState,
 } from '@cyient/shared-ui';
 import { useState } from 'react';
 import { useParams } from 'react-router';
 import { mpplTags } from '@/api-callers/api-tags';
 import { useIssue } from '@/hooks/issues/queries';
 import { issueTitle, STATUS_ACTIONS, statusInfo } from '@/constants/issue-status';
+import { DEFAULT_RECORD_HISTORY_TAB, RECORD_HISTORY_TABS, type RecordHistoryTab } from '@/constants/tab-sections';
 import { useAdminCloseIssue } from '@/hooks/manage/mutations';
 import { useIssueRecord } from '@/hooks/manage/queries';
 
@@ -25,6 +27,10 @@ export function ManageIssuePage() {
   const close = useAdminCloseIssue(publicId);
   const record = useIssueRecord(publicId);
   const [closing, setClosing] = useState(false);
+  const { activeTab, setTab } = useTabState<RecordHistoryTab>({
+    defaultTab: DEFAULT_RECORD_HISTORY_TAB,
+    validTabs: RECORD_HISTORY_TABS,
+  });
   const failed = useActionFailure(mpplTags.issue.detail(publicId), {
     onConflict: () => {
       setClosing(false);
@@ -56,7 +62,7 @@ export function ManageIssuePage() {
           </>
         }
       />
-      <RecordHistoryTabs {...record} />
+      <RecordHistoryTabs {...record} tab={activeTab} onTabChange={setTab} />
 
       <ConfirmDialog
         open={closing}

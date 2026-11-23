@@ -120,6 +120,7 @@ export { useActionFailure, type ActionFailureOptions } from './hooks/useActionFa
 export { useDebouncedValue } from './hooks/useDebouncedValue';
 export { useDownloadDocument, useFileDownload } from './hooks/useFileDownload';
 export { toNumber, useListState, type FilterValues, type ListState } from './hooks/useListState';
+export { useTabState, type UseTabStateOptions, type UseTabStateReturn } from './hooks/useTabState';
 
 export { AppShell, type NavGroup, type NavItem } from './layout/AppShell';
 export {

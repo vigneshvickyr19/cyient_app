@@ -12,12 +12,13 @@ import {
   SectionSkeleton,
   StatusChip,
   useFileDownload,
+  useTabState,
   type DetailItem,
 } from '@cyient/shared-ui';
 import { formatDate, formatDateTime } from '@cyient/shared-utils';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { Stack, Tab, Tabs } from '@mui/material';
-import { useParams, useSearchParams } from 'react-router';
+import { useParams } from 'react-router';
 import { downloadNotePdf } from '@/api-callers/notes/note.api';
 import { useEcnApi } from '@/hooks/useEcnApi';
 import { AttachmentsSection } from '@/views/notes/detail/AttachmentsSection';
@@ -27,10 +28,8 @@ import { FunctionTab } from '@/views/notes/detail/FunctionTab';
 import { ImmediateActionsSection, PartsSection } from '@/views/notes/detail/LinesSection';
 import { useNote, useNoteLog } from '@/hooks/notes/queries';
 import { faiLabels, isOpenAction, kindLabels, stageLabel, STATUS_ACTIONS, statusInfo, typeLabels } from '@/constants/note-status';
+import { DEFAULT_NOTE_DETAIL_TAB, FUNCTION_TAB_PREFIX, NOTE_DETAIL_FIXED_TABS, type NoteDetailFixedTab } from '@/constants/tab-sections';
 import { WorkflowActions } from '@/views/notes/detail/WorkflowActions';
-
-const fixedTabs = ['front', 'team', 'parts', 'immediate', 'attendance', 'attachments', 'log'] as const;
-const FUNCTION_TAB = 'function-';
 
 function FrontPage({ note }: { note: NoteDetails }) {
   const isEcn = note.noteType === 'Ecn';
@@ -119,9 +118,13 @@ function LogSection({ publicId }: { publicId: string }) {
 export function NoteDetailsPage() {
   const { publicId = '' } = useParams();
   const api = useEcnApi();
-  const [params, setParams] = useSearchParams();
   const note = useNote(publicId);
   const pdf = useFileDownload(() => downloadNotePdf(api, publicId), 'ECN.pdf');
+  const { activeTab: tab, setTab: openTab } = useTabState<string>({
+    defaultTab: DEFAULT_NOTE_DETAIL_TAB,
+    validTabs: NOTE_DETAIL_FIXED_TABS,
+    isValidTab: (name) => NOTE_DETAIL_FIXED_TABS.includes(name as NoteDetailFixedTab) || name.startsWith(FUNCTION_TAB_PREFIX),
+  });
 
   if (note.isPending) return <PageLoader />;
   if (note.isError) {
@@ -133,14 +136,11 @@ export function NoteDetailsPage() {
   const functionTabs = details.cftTeam.filter((row) => row.tabEnabled);
   const showAttendance = details.noteType === 'Tcn' && details.status !== STATUS_ACTIONS.DRAFT;
   const editable = details.allowedActions?.editableFunctionIds ?? [];
-  const requested = params.get('tab') ?? 'front';
-  const tab =
-    fixedTabs.find((name) => name === requested && (name !== 'attendance' || showAttendance)) ??
-    (functionTabs.some((row) => `${FUNCTION_TAB}${row.functionId}` === requested) ? requested : 'front');
-  const openTab = (value: string) => {
-    setParams(value === 'front' ? {} : { tab: value }, { replace: true });
-  };
-  const shownFunction = functionTabs.find((row) => `${FUNCTION_TAB}${row.functionId}` === tab);
+  const shownFunction = functionTabs.find((row) => `${FUNCTION_TAB_PREFIX}${row.functionId}` === tab);
+  const activeTab =
+    (tab === 'attendance' && !showAttendance) || (tab.startsWith(FUNCTION_TAB_PREFIX) && !shownFunction)
+      ? DEFAULT_NOTE_DETAIL_TAB
+      : tab;
   const myTab = functionTabs.find((row) => editable.includes(row.functionId));
 
   return (
@@ -166,12 +166,12 @@ export function NoteDetailsPage() {
       />
 
       <Stack spacing={2}>
-        {details.allowedActions?.canEdit && tab !== 'team' && <MissingForMeeting note={details} />}
+        {details.allowedActions?.canEdit && activeTab !== 'team' && <MissingForMeeting note={details} />}
         {details.status === STATUS_ACTIONS.CANCELLED && <InlineAlert severity="warning">This note was cancelled. The reason is on the Log.</InlineAlert>}
         {myTab && details.status === STATUS_ACTIONS.CFT_REVIEW && shownFunction?.functionId !== myTab.functionId && (
           <InlineAlert
             action={
-              <Button color="inherit" size="small" onClick={() => { openTab(`${FUNCTION_TAB}${myTab.functionId}`); }}>
+              <Button color="inherit" size="small" onClick={() => { openTab(`${FUNCTION_TAB_PREFIX}${myTab.functionId}`); }}>
                 Open
               </Button>
             }
@@ -181,7 +181,7 @@ export function NoteDetailsPage() {
         )}
       </Stack>
 
-      <Tabs value={tab} onChange={(_, value: string) => { openTab(value); }} variant="scrollable" allowScrollButtonsMobile aria-label="Note tabs" sx={{ my: 2 }}>
+      <Tabs value={activeTab} onChange={(_, value: string) => { openTab(value); }} variant="scrollable" allowScrollButtonsMobile aria-label="Note tabs" sx={{ my: 2 }}>
         <Tab value="front" label="Front page" />
         <Tab value="team" label="CFT team" />
         <Tab value="parts" label={`ECN parts (${details.parts.length})`} />
@@ -189,20 +189,20 @@ export function NoteDetailsPage() {
         {showAttendance && <Tab value="attendance" label="Attendance" />}
         {functionTabs.map((row) => {
           const open = row.actions.filter((a) => isOpenAction(a.status)).length;
-          return <Tab key={row.functionId} value={`${FUNCTION_TAB}${row.functionId}`} label={open > 0 ? `${row.functionName} (${open} open)` : row.functionName} />;
+          return <Tab key={row.functionId} value={`${FUNCTION_TAB_PREFIX}${row.functionId}`} label={open > 0 ? `${row.functionName} (${open} open)` : row.functionName} />;
         })}
         <Tab value="attachments" label={`Attachments${details.attachments?.length ? ` (${details.attachments.length})` : ''}`} />
         <Tab value="log" label="Log" />
       </Tabs>
 
-      {tab === 'front' && <FrontPage note={details} />}
-      {tab === 'team' && <CftTeamSection note={details} />}
-      {tab === 'parts' && <PartsSection note={details} />}
-      {tab === 'immediate' && <ImmediateActionsSection note={details} />}
-      {tab === 'attendance' && <AttendanceSection key={details.version} note={details} />}
+      {activeTab === 'front' && <FrontPage note={details} />}
+      {activeTab === 'team' && <CftTeamSection note={details} />}
+      {activeTab === 'parts' && <PartsSection note={details} />}
+      {activeTab === 'immediate' && <ImmediateActionsSection note={details} />}
+      {activeTab === 'attendance' && <AttendanceSection key={details.version} note={details} />}
       {shownFunction && <FunctionTab note={details} row={shownFunction} />}
-      {tab === 'attachments' && <AttachmentsSection note={details} />}
-      {tab === 'log' && <LogSection publicId={publicId} />}
+      {activeTab === 'attachments' && <AttachmentsSection note={details} />}
+      {activeTab === 'log' && <LogSection publicId={publicId} />}
     </>
   );
 }

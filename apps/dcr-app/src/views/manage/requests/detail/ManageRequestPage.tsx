@@ -15,7 +15,8 @@ import {
   PageLoader,
   RecordHistoryTabs,
   StatusChip,
-  } from '@cyient/shared-ui';
+  useTabState,
+} from '@cyient/shared-ui';
 import { maxLength, notInPast, required } from '@cyient/shared-utils';
 import { Stack } from '@mui/material';
 import { useState } from 'react';
@@ -23,6 +24,7 @@ import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
 import { useRequest } from '@/hooks/requests/queries';
 import { STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
+import { DEFAULT_RECORD_HISTORY_TAB, RECORD_HISTORY_TABS, type RecordHistoryTab } from '@/constants/tab-sections';
 import { useCancelRequest, useCorrectRequest, useRequestRecord } from '@/hooks/manage/queries';
 
 const closedStatuses: readonly RequestDetails['status'][] = [
@@ -133,6 +135,10 @@ export function ManageRequestPage() {
   const cancel = useCancelRequest(publicId);
   const record = useRequestRecord(publicId);
   const [dialog, setDialog] = useState<'cancel' | 'correct' | null>(null);
+  const { activeTab, setTab } = useTabState<RecordHistoryTab>({
+    defaultTab: DEFAULT_RECORD_HISTORY_TAB,
+    validTabs: RECORD_HISTORY_TABS,
+  });
 
   if (request.isPending) return <PageLoader />;
   if (request.isError) return <ErrorState message={errorMessage(request.error)} onRetry={() => void request.refetch()} />;
@@ -160,7 +166,7 @@ export function ManageRequestPage() {
           </>
         }
       />
-      <RecordHistoryTabs {...record} />
+      <RecordHistoryTabs {...record} tab={activeTab} onTabChange={setTab} />
 
       <ConfirmDialog
         open={dialog === 'cancel'}

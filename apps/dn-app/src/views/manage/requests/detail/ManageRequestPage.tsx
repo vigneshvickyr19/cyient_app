@@ -19,6 +19,7 @@ import {
   RecordHistoryTabs,
   StatusChip,
   useActionFailure,
+  useTabState,
   type PersonOption,
 } from '@cyient/shared-ui';
 import { maxLength, required } from '@cyient/shared-utils';
@@ -31,6 +32,7 @@ import { dnTags } from '@/api-callers/api-tags';
 import { useRequest } from '@/hooks/requests/queries';
 import { InformedPeople, ReviewerSequence } from '@/components/requests/ReviewersSection';
 import { inOrder, isOpenStep, MAX_INFORMED, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
+import { DEFAULT_RECORD_HISTORY_TAB, RECORD_HISTORY_TABS, type RecordHistoryTab } from '@/constants/tab-sections';
 import {
   useAddReviewer,
   useChangeReviewer,
@@ -184,6 +186,10 @@ export function ManageRequestPage() {
   const close = useCloseRequest(publicId);
   const record = useRequestRecord(publicId);
   const [dialog, setDialog] = useState<Dialog>(null);
+  const { activeTab, setTab } = useTabState<RecordHistoryTab>({
+    defaultTab: DEFAULT_RECORD_HISTORY_TAB,
+    validTabs: RECORD_HISTORY_TABS,
+  });
   const dismiss = () => {
     setDialog(null);
   };
@@ -249,7 +255,7 @@ export function ManageRequestPage() {
           request={details}
           actions={canChangePeople && <Button onClick={() => { setDialog({ kind: 'informed' }); }}>Change</Button>}
         />
-        <RecordHistoryTabs {...record} />
+        <RecordHistoryTabs {...record} tab={activeTab} onTabChange={setTab} />
       </Stack>
 
       <ConfirmDialog

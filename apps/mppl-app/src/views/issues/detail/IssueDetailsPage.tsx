@@ -15,18 +15,17 @@ import {
   SimpleTable,
   StatusChip,
   useDownloadDocument,
+  useTabState,
 } from '@cyient/shared-ui';
 import { formatCurrency, formatDate, formatDateTime, formatNumber } from '@cyient/shared-utils';
 import { Stack, Tab, Tabs } from '@mui/material';
 import { useState } from 'react';
-import { useParams, useSearchParams } from 'react-router';
+import { useParams } from 'react-router';
 import { IssueActions } from '@/views/issues/detail/IssueActions';
 import { useUploadDocument } from '@/hooks/issues/mutations';
 import { useIssue, useIssueDocuments, useIssueLog } from '@/hooks/issues/queries';
 import { issueTitle, STATUS_ACTIONS, statusInfo } from '@/constants/issue-status';
-
-const tabs = ['details', 'documents', 'log'] as const;
-type TabName = (typeof tabs)[number];
+import { DEFAULT_ISSUE_DETAIL_TAB, ISSUE_DETAIL_TABS, type IssueDetailTab } from '@/constants/tab-sections';
 
 /** File types the API accepts for a reference document (Platform:Files:AllowedExtensions). */
 
@@ -169,9 +168,11 @@ function LogSection({ publicId }: { publicId: string }) {
 /** One issue: its details, documents and log, and the actions the signed-in user may take. Email links open this page. */
 export function IssueDetailsPage() {
   const { publicId = '' } = useParams();
-  const [params, setParams] = useSearchParams();
+  const { activeTab: tab, setTab } = useTabState<IssueDetailTab>({
+    defaultTab: DEFAULT_ISSUE_DETAIL_TAB,
+    validTabs: ISSUE_DETAIL_TABS,
+  });
   const issue = useIssue(publicId);
-  const tab: TabName = tabs.find((name) => name === params.get('tab')) ?? 'details';
 
   if (issue.isPending) return <PageLoader />;
   if (issue.isError) {
@@ -203,8 +204,8 @@ export function IssueDetailsPage() {
 
       <Tabs
         value={tab}
-        onChange={(_, value: TabName) => {
-          setParams(value === 'details' ? {} : { tab: value }, { replace: true });
+        onChange={(_, value: IssueDetailTab) => {
+          setTab(value);
         }}
         variant="scrollable"
         allowScrollButtonsMobile

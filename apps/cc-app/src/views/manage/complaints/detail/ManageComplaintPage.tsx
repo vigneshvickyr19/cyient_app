@@ -9,6 +9,7 @@ import {
   RecordHistoryTabs,
   StatusChip,
   useActionFailure,
+  useTabState,
 } from '@cyient/shared-ui';
 import { useState } from 'react';
 import { useParams } from 'react-router';
@@ -16,6 +17,7 @@ import { ccTags } from '@/api-callers/api-tags';
 import { useComplaint } from '@/hooks/complaints/queries';
 import { statusInfo } from '@/constants/complaint-status';
 import { STATUS_ACTIONS } from '@/constants/status-actions';
+import { DEFAULT_RECORD_HISTORY_TAB, RECORD_HISTORY_TABS, type RecordHistoryTab } from '@/constants/tab-sections';
 import { useCancelComplaint, useComplaintRecord } from '@/hooks/manage/queries';
 
 /** One complaint for administrators: cancel it with a reason, and see its history, emails and audit trail. */
@@ -26,6 +28,10 @@ export function ManageComplaintPage() {
   const cancel = useCancelComplaint(publicId);
   const record = useComplaintRecord(publicId);
   const [cancelling, setCancelling] = useState(false);
+  const { activeTab, setTab } = useTabState<RecordHistoryTab>({
+    defaultTab: DEFAULT_RECORD_HISTORY_TAB,
+    validTabs: RECORD_HISTORY_TABS,
+  });
 
   if (complaint.isPending) return <PageLoader />;
   if (complaint.isError) return <ErrorState message={errorMessage(complaint.error)} onRetry={() => void complaint.refetch()} />;
@@ -53,7 +59,7 @@ export function ManageComplaintPage() {
           </>
         }
       />
-      <RecordHistoryTabs {...record} />
+      <RecordHistoryTabs {...record} tab={activeTab} onTabChange={setTab} />
 
       <ConfirmDialog
         open={cancelling}

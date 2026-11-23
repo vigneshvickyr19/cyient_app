@@ -16,22 +16,21 @@ import {
   StatusChip,
   useDownloadDocument,
   useFileDownload,
+  useTabState,
 } from '@cyient/shared-ui';
 import { formatDate, formatDateTime } from '@cyient/shared-utils';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { Stack, Tab, Tabs } from '@mui/material';
 import { useState } from 'react';
-import { useParams, useSearchParams } from 'react-router';
+import { useParams } from 'react-router';
 import { downloadRequestPdf } from '@/api-callers/requests/request.api';
 import { useDcrApi } from '@/hooks/useDcrApi';
 import { ClausesSection } from '@/views/requests/detail/ClausesSection';
 import { useUploadDocument } from '@/hooks/requests/mutations';
 import { useRequest, useRequestDocuments, useRequestLog } from '@/hooks/requests/queries';
 import { releasedInfo, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
+import { DEFAULT_REQUEST_DETAIL_TAB, REQUEST_DETAIL_TABS, type RequestDetailTab } from '@/constants/tab-sections';
 import { WorkflowActions } from '@/views/requests/detail/WorkflowActions';
-
-const tabs = ['details', 'clauses', 'documents', 'log'] as const;
-type TabName = (typeof tabs)[number];
 
 function RequestSummary({ request }: { request: RequestDetails }) {
   return (
@@ -126,10 +125,12 @@ function LogSection({ publicId }: { publicId: string }) {
 export function RequestDetailsPage() {
   const { publicId = '' } = useParams();
   const api = useDcrApi();
-  const [params, setParams] = useSearchParams();
+  const { activeTab: tab, setTab } = useTabState<RequestDetailTab>({
+    defaultTab: DEFAULT_REQUEST_DETAIL_TAB,
+    validTabs: REQUEST_DETAIL_TABS,
+  });
   const request = useRequest(publicId);
   const pdf = useFileDownload(() => downloadRequestPdf(api, publicId), 'DCR.pdf');
-  const tab: TabName = tabs.find((name) => name === params.get('tab')) ?? 'details';
 
   if (request.isPending) return <PageLoader />;
   if (request.isError) {
@@ -171,8 +172,8 @@ export function RequestDetailsPage() {
 
       <Tabs
         value={tab}
-        onChange={(_, value: TabName) => {
-          setParams(value === 'details' ? {} : { tab: value }, { replace: true });
+        onChange={(_, value: RequestDetailTab) => {
+          setTab(value);
         }}
         variant="scrollable"
         allowScrollButtonsMobile

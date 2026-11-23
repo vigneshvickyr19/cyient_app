@@ -15,22 +15,20 @@ import {
   StatusChip,
   useAuth,
   useDownloadDocument,
+  useTabState,
 } from '@cyient/shared-ui';
 import { Box, Stack, Step, StepLabel, Stepper, Tab, Tabs } from '@mui/material';
 import { useState } from 'react';
-import { useParams, useSearchParams } from 'react-router';
+import { useParams } from 'react-router';
 import { ActionsSection } from '@/views/complaints/detail/ActionsSection';
 import { FirstPageSection } from '@/views/complaints/detail/FirstPageSection';
 import { useUploadDocument } from '@/hooks/complaints/mutations';
 import { useComplaint, useComplaintDocuments, useComplaintLog } from '@/hooks/complaints/queries';
 import { RootCauseSection } from '@/views/complaints/detail/RootCauseSection';
-import { defaultTab, partOf, progressOf, STATUS_ACTIONS, statusInfo, stepReached, steps, waitingFor, type StepTab } from '@/constants/complaint-status';
+import { defaultTab, partOf, progressOf, STATUS_ACTIONS, statusInfo, stepReached, steps, waitingFor } from '@/constants/complaint-status';
+import { COMPLAINT_DETAIL_TABS, DEFAULT_COMPLAINT_DETAIL_TAB, type ComplaintDetailTab } from '@/constants/tab-sections';
 import { StepTextSection } from '@/views/complaints/detail/StepTextSection';
 import { WorkflowActions } from '@/views/complaints/detail/WorkflowActions';
-
-type TabName = StepTab | 'documents' | 'log';
-
-const tabNames: readonly TabName[] = [...steps.map((step) => step.tab), 'documents', 'log'];
 
 function DocumentsSection({ complaint, canUpload }: { complaint: ComplaintDetails; canUpload: boolean }) {
   const [allVersions, setAllVersions] = useState(false);
@@ -116,8 +114,13 @@ function PublishBlockers({ complaint }: { complaint: ComplaintDetails }) {
 export function ComplaintDetailsPage() {
   const { publicId = '' } = useParams();
   const { user } = useAuth();
-  const [params, setParams] = useSearchParams();
   const complaint = useComplaint(publicId);
+  const pendingStatus = complaint.data?.status;
+  const currentDefaultTab = pendingStatus ? (defaultTab(pendingStatus) as ComplaintDetailTab) : DEFAULT_COMPLAINT_DETAIL_TAB;
+  const { activeTab, setTab: showTab } = useTabState<ComplaintDetailTab>({
+    defaultTab: currentDefaultTab,
+    validTabs: COMPLAINT_DETAIL_TABS,
+  });
 
   if (complaint.isPending) return <PageLoader />;
   if (complaint.isError) {
@@ -128,18 +131,14 @@ export function ComplaintDetailsPage() {
   const title = details.complaintNo ?? 'Draft complaint';
   const status = details.status;
   const part = partOf(details, user.userId);
-  const reachedTab = (name: TabName) => {
+  const reachedTab = (name: ComplaintDetailTab) => {
     const index = steps.findIndex((step) => step.tab === name);
     return index < 0 || stepReached(status, index);
   };
-  const asked = tabNames.find((name) => name === params.get('tab'));
-  const tab: TabName = asked && reachedTab(asked) ? asked : defaultTab(status);
-  const showTab = (name: TabName) => {
-    setParams(name === defaultTab(status) ? {} : { tab: name }, { replace: true });
-  };
+  const tab: ComplaintDetailTab = reachedTab(activeTab) ? activeTab : currentDefaultTab;
   // After a step moves the complaint on, the page shows the step that is now open
   const moved = () => {
-    setParams({}, { replace: true });
+    showTab(currentDefaultTab);
   };
   const isDraftOfInitiator = status === STATUS_ACTIONS.DRAFT && part.isInitiator;
   const repeatMissing = details.isRepeat && !details.repeatOf;
@@ -185,7 +184,7 @@ export function ComplaintDetailsPage() {
 
       <Tabs
         value={tab}
-        onChange={(_, value: TabName) => {
+        onChange={(_, value: ComplaintDetailTab) => {
           showTab(value);
         }}
         variant="scrollable"
