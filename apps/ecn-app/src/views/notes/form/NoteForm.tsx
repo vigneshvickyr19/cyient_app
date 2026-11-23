@@ -26,7 +26,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { AddCustomerDialog } from '@/components/masters/AddCustomerDialog';
 import { useCustomerOptions } from '@/hooks/masters/queries';
 import { permissions } from '@/constants/permissions';
-import { attachmentExtensions, faiOptions, kindOptions, typeOptions } from '@/constants/notes/status';
+import { attachmentExtensions, faiOptions, kindOptions, typeOptions } from '@/constants/note-status';
 
 type Kind = NonNullable<EcnKind>;
 type YesNo = 'Yes' | 'No';

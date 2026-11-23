@@ -4,10 +4,10 @@ import { daysSince, formatDate, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { usePendingRequests } from '@/hooks/requests/queries';
-import { statusInfo } from '@/constants/requests/status';
+import { STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
 
 const columns: GridColDef<PendingItem>[] = [
-  { field: 'requestNo', headerName: 'Request no', minWidth: 140, sortable: false, valueGetter: (_, row) => row.requestNo ?? 'Draft' },
+  { field: 'requestNo', headerName: 'Request no', minWidth: 140, sortable: false, valueGetter: (_, row) => row.requestNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'documentReference', headerName: 'Document reference', flex: 1, minWidth: 180, sortable: false },
   { field: 'stage', headerName: 'Waiting at', minWidth: 190, sortable: false, renderCell: ({ row }) => <StatusChip {...statusInfo[row.stage]} /> },
   { field: 'requestFrom', headerName: 'Requested by', minWidth: 160, sortable: false, valueGetter: (_, row) => row.requestFrom.name },

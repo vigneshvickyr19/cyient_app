@@ -25,7 +25,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ccTags } from '@/api-callers/api-tags';
 import { useDeleteContainment, useSaveContainment } from '@/hooks/complaints/mutations';
-import { actionStatusInfo } from '@/constants/complaints/status';
+import { actionStatusInfo } from '@/constants/complaint-status';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 
 interface ContainmentFormValues {
   description: string;
@@ -34,8 +35,8 @@ interface ContainmentFormValues {
 }
 
 const statuses: Option<ActionStatus>[] = [
-  { value: 'Closed', label: 'Done' },
-  { value: 'Open', label: 'Still open' },
+  { value: STATUS_ACTIONS.CLOSED, label: 'Done' },
+  { value: STATUS_ACTIONS.OPEN, label: 'Still open' },
 ];
 
 const serverFieldNames = { responsibleUserId: 'responsible' } as const;
@@ -47,7 +48,7 @@ function ContainmentDialog({ publicId, line, onClose }: { publicId: string; line
     defaultValues: {
       description: line?.description ?? '',
       responsible: line ? { id: line.responsible.id, name: line.responsible.name ?? '' } : null,
-      status: line?.status ?? 'Closed',
+      status: line?.status ?? STATUS_ACTIONS.CLOSED,
     },
   });
 

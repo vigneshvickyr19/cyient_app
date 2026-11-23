@@ -23,7 +23,7 @@ import { useParams, useSearchParams } from 'react-router';
 import { IssueActions } from '@/views/issues/detail/IssueActions';
 import { useUploadDocument } from '@/hooks/issues/mutations';
 import { useIssue, useIssueDocuments, useIssueLog } from '@/hooks/issues/queries';
-import { issueTitle, statusInfo } from '@/constants/issues/status';
+import { issueTitle, STATUS_ACTIONS, statusInfo } from '@/constants/issue-status';
 
 const tabs = ['details', 'documents', 'log'] as const;
 type TabName = (typeof tabs)[number];
@@ -105,8 +105,8 @@ function IssueSummary({ issue }: { issue: IssueDetails }) {
           ]}
         />
       </SectionCard>
-      {issue.status !== 'Draft' && <EscalationsSection escalations={issue.escalations} />}
-      {issue.status === 'Closed' && (
+      {issue.status !== STATUS_ACTIONS.DRAFT && <EscalationsSection escalations={issue.escalations} />}
+      {issue.status === STATUS_ACTIONS.CLOSED && (
         <SectionCard title="Closure">
           <DetailList
             items={[
@@ -180,7 +180,7 @@ export function IssueDetailsPage() {
 
   const details = issue.data;
   const title = issueTitle(details);
-  const listLink = details.status === 'Draft' ? '/issues?list=Drafts' : details.status === 'Closed' ? '/issues?list=Fixed' : '/issues';
+  const listLink = details.status === STATUS_ACTIONS.DRAFT ? '/issues?list=Drafts' : details.status === STATUS_ACTIONS.CLOSED ? '/issues?list=Fixed' : '/issues';
 
   return (
     <>
@@ -192,7 +192,7 @@ export function IssueDetailsPage() {
         actions={<IssueActions issue={details} />}
       />
 
-      {details.status === 'Open' && details.pendingWith && (
+      {details.status === STATUS_ACTIONS.OPEN && details.pendingWith && (
         <InlineAlert>
           Pending with {details.pendingWith} since {formatDate(details.submittedAt)}.
         </InlineAlert>

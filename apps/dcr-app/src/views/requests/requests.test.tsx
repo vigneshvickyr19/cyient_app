@@ -4,6 +4,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { RequestDetailsPage } from '@/views/requests/detail/RequestDetailsPage';
 import { NewRequestPage } from '@/views/requests/form/RequestFormPage';
 
@@ -11,8 +12,8 @@ function request(overrides: Partial<RequestDetails> = {}): RequestDetails {
   return {
     publicId: 'p1',
     requestNo: 'DCR/2026/0042',
-    status: 'ImsReview',
-    releasedStatus: 'NotYetReleased',
+    status: STATUS_ACTIONS.IMS_REVIEW,
+    releasedStatus: STATUS_ACTIONS.NOT_YET_RELEASED,
     requestFrom: { id: 3, name: 'Riya Requester' },
     designation: 'Sr. Engineer - Quality',
     requestDate: '2026-11-03',

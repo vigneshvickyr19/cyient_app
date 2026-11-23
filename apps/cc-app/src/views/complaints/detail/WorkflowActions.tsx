@@ -7,6 +7,7 @@ import { ccTags } from '@/api-callers/api-tags';
 import { downloadEightDReport } from '@/api-callers/complaints/complaint.api';
 import { useCcApi } from '@/hooks/useCcApi';
 import { useWorkflowAction } from '@/hooks/complaints/mutations';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 
 type Dialog = 'publish' | 'close' | null;
 
@@ -31,7 +32,7 @@ export function WorkflowActions({ complaint, canPublish }: { complaint: Complain
   const failed = useActionFailure(ccTags.complaint.detail(complaint.publicId));
   const report = useFileDownload(() => downloadEightDReport(api, complaint.publicId), '8D report.pdf');
   const allowed = complaint.allowedActions;
-  const showPublish = complaint.status === 'Draft' && allowed?.canEdit === true;
+  const showPublish = complaint.status === STATUS_ACTIONS.DRAFT && allowed?.canEdit === true;
   const open = dialog ? dialogs[dialog] : null;
 
   return (
@@ -51,7 +52,7 @@ export function WorkflowActions({ complaint, canPublish }: { complaint: Complain
           Close complaint
         </Button>
       )}
-      {complaint.status !== 'Draft' && (
+      {complaint.status !== STATUS_ACTIONS.DRAFT && (
         <Button startIcon={<PictureAsPdfOutlinedIcon />} loading={report.isPending} onClick={() => { report.mutate(); }}>
           8D report
         </Button>

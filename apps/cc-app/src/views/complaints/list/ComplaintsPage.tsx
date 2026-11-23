@@ -9,7 +9,7 @@ import { masterTypes } from '@/constants/masters';
 import { permissions } from '@/constants/permissions';
 import type { ComplaintListQuery } from '@/types/complaints';
 import { useComplaintList } from '@/hooks/complaints/queries';
-import { isComplaintStatus, statusInfo, statusOptions } from '@/constants/complaints/status';
+import { isComplaintStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/complaint-status';
 
 interface Filters {
   scope?: string;
@@ -38,7 +38,7 @@ const criticalOptions: Option<'yes' | 'no'>[] = [
 ];
 
 const columns: GridColDef<ComplaintListItem>[] = [
-  { field: 'complaintNo', headerName: 'Complaint no', minWidth: 140, valueGetter: (_, row) => row.complaintNo ?? 'Draft' },
+  { field: 'complaintNo', headerName: 'Complaint no', minWidth: 140, valueGetter: (_, row) => row.complaintNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'customer', headerName: 'Customer', minWidth: 170, sortable: false, valueGetter: (_, row) => row.customer.name },
   { field: 'complaintDescription', headerName: 'Complaint', flex: 1, minWidth: 220, sortable: false },
   { field: 'customerPartNo', headerName: 'Customer part no', minWidth: 140, sortable: false },

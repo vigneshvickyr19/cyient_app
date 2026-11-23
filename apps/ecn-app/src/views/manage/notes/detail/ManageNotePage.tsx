@@ -18,7 +18,7 @@ import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { permissions } from '@/constants/permissions';
 import { useNote } from '@/hooks/notes/queries';
-import { stageLabel, statusInfo, typeLabels } from '@/constants/notes/status';
+import { stageLabel, STATUS_ACTIONS, statusInfo, typeLabels } from '@/constants/note-status';
 import { useCancelNote, useNoteRecord, useOpenTasks } from '@/hooks/manage/queries';
 
 const tabs = ['history', 'emails', 'audit', 'tasks'] as const;
@@ -61,7 +61,7 @@ export function ManageNotePage() {
 
   const details = note.data;
   const title = `${typeLabels[details.noteType]} ${details.noteNo}`;
-  const cancellable = details.status !== 'Released' && details.status !== 'Cancelled';
+  const cancellable = details.status !== STATUS_ACTIONS.RELEASED && details.status !== STATUS_ACTIONS.CANCELLED;
 
   return (
     <>

@@ -20,7 +20,7 @@ import { ccTags } from '@/api-callers/api-tags';
 import { InternalActionsSection } from '@/views/internal-complaints/detail/InternalActionsSection';
 import { useCloseInternal } from '@/hooks/internal/mutations';
 import { useInternalComplaint } from '@/hooks/internal/queries';
-import { internalStatusInfo } from '@/constants/internal/status';
+import { internalStatusInfo } from '@/constants/internal-status';
 
 /** One internal complaint: its details, its action matrix and, for the person who recorded it, close. */
 export function InternalDetailsPage() {

@@ -3,10 +3,11 @@ import { DataTable, ErrorState, errorMessage, PageHeader, StatusChip, useListSta
 import { daysSince, formatDate, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { usePendingComplaints } from '@/hooks/complaints/queries';
 
 const columns: GridColDef<PendingItem>[] = [
-  { field: 'complaintNo', headerName: 'Complaint no', minWidth: 140, sortable: false, valueGetter: (_, row) => row.complaintNo ?? 'Draft' },
+  { field: 'complaintNo', headerName: 'Complaint no', minWidth: 140, sortable: false, valueGetter: (_, row) => row.complaintNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'customer', headerName: 'Customer', minWidth: 170, sortable: false, valueGetter: (_, row) => row.customer.name },
   { field: 'stageName', headerName: 'Waiting for', minWidth: 170, sortable: false, renderCell: ({ row }) => <StatusChip label={row.stageName} tone="info" /> },
   { field: 'actionDescription', headerName: 'Action', flex: 1, minWidth: 220, sortable: false },

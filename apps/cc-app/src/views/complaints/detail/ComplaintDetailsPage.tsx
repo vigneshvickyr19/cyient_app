@@ -24,7 +24,7 @@ import { FirstPageSection } from '@/views/complaints/detail/FirstPageSection';
 import { useUploadDocument } from '@/hooks/complaints/mutations';
 import { useComplaint, useComplaintDocuments, useComplaintLog } from '@/hooks/complaints/queries';
 import { RootCauseSection } from '@/views/complaints/detail/RootCauseSection';
-import { defaultTab, partOf, progressOf, statusInfo, stepReached, steps, waitingFor, type StepTab } from '@/constants/complaints/status';
+import { defaultTab, partOf, progressOf, STATUS_ACTIONS, statusInfo, stepReached, steps, waitingFor, type StepTab } from '@/constants/complaint-status';
 import { StepTextSection } from '@/views/complaints/detail/StepTextSection';
 import { WorkflowActions } from '@/views/complaints/detail/WorkflowActions';
 
@@ -84,7 +84,7 @@ function YourPart({ complaint, userId }: { complaint: ComplaintDetails; userId: 
   const waiting = waitingFor[complaint.status];
 
   return (
-    <InlineAlert title={complaint.status === 'Draft' ? 'Draft: only you can see it until it is published' : undefined}>
+    <InlineAlert title={complaint.status === STATUS_ACTIONS.DRAFT ? 'Draft: only you can see it until it is published' : undefined}>
       {[...(roles.length > 0 ? roles : ['You can view this complaint. The initiator and the team members work on it.']), ...(waiting ? [`Next: ${waiting}`] : [])].join(' ')}
     </InlineAlert>
   );
@@ -141,7 +141,7 @@ export function ComplaintDetailsPage() {
   const moved = () => {
     setParams({}, { replace: true });
   };
-  const isDraftOfInitiator = status === 'Draft' && part.isInitiator;
+  const isDraftOfInitiator = status === STATUS_ACTIONS.DRAFT && part.isInitiator;
   const repeatMissing = details.isRepeat && !details.repeatOf;
 
   return (
@@ -161,7 +161,7 @@ export function ComplaintDetailsPage() {
       />
 
       <Stack spacing={2} sx={{ mb: 2 }}>
-        {status === 'Cancelled' ? (
+        {status === STATUS_ACTIONS.CANCELLED ? (
           <InlineAlert severity="error" title="Cancelled">
             This complaint was cancelled by an administrator; the reason is on the Log tab.
           </InlineAlert>
@@ -171,7 +171,7 @@ export function ComplaintDetailsPage() {
         {isDraftOfInitiator && <PublishBlockers complaint={details} />}
       </Stack>
 
-      {status !== 'Cancelled' && (
+      {status !== STATUS_ACTIONS.CANCELLED && (
         <Box sx={{ overflowX: 'auto', py: 1 }}>
           <Stepper activeStep={progressOf(status)} alternativeLabel sx={{ minWidth: 760 }} aria-label="8D progress">
             {[...steps.map((step) => step.label), 'Initiator review'].map((label) => (

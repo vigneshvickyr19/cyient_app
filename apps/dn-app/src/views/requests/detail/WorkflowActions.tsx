@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { dnTags } from '@/api-callers/api-tags';
 import type { WorkflowCall, WorkflowStep } from '@/api-callers/requests/request.api';
 import { useWorkflowAction } from '@/hooks/requests/mutations';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 
 interface StepText {
   label: string;
@@ -33,7 +34,7 @@ const currentStep = (request: RequestDetails) => request.reviewers.find((reviewe
 function stepText(step: WorkflowStep, request: RequestDetails): StepText {
   switch (step) {
     case 'submit': {
-      if (request.status === 'MoreDetailsRequired') {
+      if (request.status === STATUS_ACTIONS.MORE_DETAILS_REQUIRED) {
         const asked = currentStep(request);
         return {
           label: 'Resubmit',
@@ -140,7 +141,7 @@ export function WorkflowActions({ request }: { request: RequestDetails }) {
           message={text.message}
           confirmLabel={text.label}
           danger={text.danger}
-          comment={dialog === 'submit' && request.status === 'Draft' ? 'optional' : 'required'}
+          comment={dialog === 'submit' && request.status === STATUS_ACTIONS.DRAFT ? 'optional' : 'required'}
           commentLabel={text.commentLabel}
           loading={action.isPending}
           canConfirm={!hodApproves || further === 'no' || (further === 'yes' && finalApprover !== null)}

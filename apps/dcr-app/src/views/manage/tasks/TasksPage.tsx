@@ -17,7 +17,7 @@ import { daysSince, formatDate, formatDateTime } from '@cyient/shared-utils';
 import { Button } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useState } from 'react';
-import { isDcrStatus, statusInfo } from '@/constants/requests/status';
+import { isDcrStatus, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
 import { useOpenTasks, useReassignTask } from '@/hooks/manage/queries';
 
 /** The stages an administrator can reassign to another person; IMS and MR reviews are held by roles. */
@@ -37,7 +37,7 @@ function ReassignDialog({ task, onClose }: { task: OpenTaskItem; onClose: () => 
     <ConfirmDialog
       open
       title={`Reassign ${statusInfo[task.stage].label}`}
-      message={`${task.requestNo ?? 'Draft'} · ${task.documentReference}. Currently with ${task.assigneeUser?.name ?? task.assigneeRole?.name ?? 'nobody'}.`}
+      message={`${task.requestNo ?? STATUS_ACTIONS.DRAFT} · ${task.documentReference}. Currently with ${task.assigneeUser?.name ?? task.assigneeRole?.name ?? 'nobody'}.`}
       confirmLabel="Reassign"
       comment="required"
       commentLabel="Reason"
@@ -68,7 +68,7 @@ export function TasksPage() {
   });
 
   const columns: GridColDef<OpenTaskItem>[] = [
-    { field: 'requestNo', headerName: 'Request no', minWidth: 130, sortable: false, valueGetter: (_, row) => row.requestNo ?? 'Draft' },
+    { field: 'requestNo', headerName: 'Request no', minWidth: 130, sortable: false, valueGetter: (_, row) => row.requestNo ?? STATUS_ACTIONS.DRAFT },
     { field: 'documentReference', headerName: 'Document reference', flex: 1, minWidth: 170, sortable: false },
     { field: 'stage', headerName: 'Stage', minWidth: 180, sortable: false, renderCell: ({ row }) => <StatusChip {...statusInfo[row.stage]} /> },
     { field: 'assignee', headerName: 'With', minWidth: 160, sortable: false, valueGetter: (_, row) => row.assigneeUser?.name ?? row.assigneeRole?.name },

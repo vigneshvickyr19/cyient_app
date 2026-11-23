@@ -4,7 +4,7 @@ import { formatDate } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { useNoteList } from '@/hooks/notes/queries';
-import { isNoteStatus, isNoteType, statusInfo, statusOptions, typeLabels, typeOptions } from '@/constants/notes/status';
+import { isNoteStatus, isNoteType, statusInfo, statusOptions, typeLabels, typeOptions } from '@/constants/note-status';
 
 interface Filters {
   search?: string;

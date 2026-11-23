@@ -13,6 +13,7 @@ import type {
 } from '@cyient/api-client/ecn';
 import { platformTags, toastMeta } from '@cyient/shared-ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { ecnTags } from '@/api-callers/api-tags';
 import { uploadAttachment, type AttachmentUpload } from '@/api-callers/notes/attachment.api';
 import { deleteImmediateAction, saveImmediateAction } from '@/api-callers/notes/immediate-action.api';
@@ -28,7 +29,7 @@ import {
 } from '@/api-callers/notes/note.api';
 import { deletePart, savePart } from '@/api-callers/notes/part.api';
 import { useEcnApi } from '@/hooks/useEcnApi';
-import { typeLabels } from '@/constants/notes/status';
+import { typeLabels } from '@/constants/note-status';
 
 /**
  * After a change: the note's details (with the new version) are stored; its log, documents, the lists, pending
@@ -93,7 +94,7 @@ export function useUpdateCftAction(publicId: string) {
   const api = useEcnApi();
   const changed = useNoteChanged();
   return useMutation({
-    meta: toastMeta<NoteDetails>({ success: (note) => (note.status === 'CftClosed' ? 'Action saved. Every CFT action is closed; the initiator can publish the note to the Reviewer.' : 'Action saved.'), error: 'The action could not be saved.' }),
+    meta: toastMeta<NoteDetails>({ success: (note) => (note.status === STATUS_ACTIONS.CFT_CLOSED ? 'Action saved. Every CFT action is closed; the initiator can publish the note to the Reviewer.' : 'Action saved.'), error: 'The action could not be saved.' }),
     mutationFn: ({ actionId, input }: { actionId: number; input: CftActionInput }) => updateCftAction(api, publicId, actionId, input),
     onSuccess: changed,
   });

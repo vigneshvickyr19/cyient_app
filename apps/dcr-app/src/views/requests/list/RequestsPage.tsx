@@ -11,7 +11,7 @@ import { useDcrApi } from '@/hooks/useDcrApi';
 import { permissions } from '@/constants/permissions';
 import type { RequestListQuery } from '@/types/requests';
 import { useRequestList } from '@/hooks/requests/queries';
-import { isDcrStatus, isReleasedStatus, releasedInfo, releasedOptions, statusInfo, statusOptions } from '@/constants/requests/status';
+import { isDcrStatus, isReleasedStatus, releasedInfo, releasedOptions, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/request-status';
 
 interface Filters {
   scope?: string;
@@ -37,7 +37,7 @@ const sortFields: Record<string, RequestSort> = {
 };
 
 const columns: GridColDef<RequestListItem>[] = [
-  { field: 'requestNo', headerName: 'Request no', minWidth: 140, valueGetter: (_, row) => row.requestNo ?? 'Draft' },
+  { field: 'requestNo', headerName: 'Request no', minWidth: 140, valueGetter: (_, row) => row.requestNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'documentReference', headerName: 'Document reference', flex: 1, minWidth: 180, sortable: false },
   { field: 'requestFrom', headerName: 'Requested by', minWidth: 160, sortable: false, valueGetter: (_, row) => row.requestFrom.name },
   { field: 'location', headerName: 'Location', minWidth: 140, sortable: false, valueGetter: (_, row) => row.location.name },

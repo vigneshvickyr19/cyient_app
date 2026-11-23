@@ -3,7 +3,7 @@ import { DataTable, Dropdown, ErrorState, errorMessage, FilterBar, PageHeader, S
 import { formatDate } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
-import { isDcrStatus, statusInfo, statusOptions } from '@/constants/requests/status';
+import { isDcrStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/request-status';
 import { useAdminRequests } from '@/hooks/manage/queries';
 
 interface Filters {
@@ -12,7 +12,7 @@ interface Filters {
 }
 
 const columns: GridColDef<RequestListItem>[] = [
-  { field: 'requestNo', headerName: 'Request no', minWidth: 140, sortable: false, valueGetter: (_, row) => row.requestNo ?? 'Draft' },
+  { field: 'requestNo', headerName: 'Request no', minWidth: 140, sortable: false, valueGetter: (_, row) => row.requestNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'documentReference', headerName: 'Document reference', flex: 1, minWidth: 180, sortable: false },
   { field: 'requestFrom', headerName: 'Requested by', minWidth: 160, sortable: false, valueGetter: (_, row) => row.requestFrom.name },
   { field: 'status', headerName: 'Status', minWidth: 190, sortable: false, renderCell: ({ row }) => <StatusChip {...statusInfo[row.status]} /> },

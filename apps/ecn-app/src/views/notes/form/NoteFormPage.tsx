@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { useCreateDraft, useUpdateDraft, useUploadAttachment } from '@/hooks/notes/mutations';
 import { type PendingUpload, NoteForm } from '@/views/notes/form/NoteForm';
 import { useNote } from '@/hooks/notes/queries';
-import { isNoteType, typeLabels } from '@/constants/notes/status';
+import { isNoteType, typeLabels } from '@/constants/note-status';
 
 /**
  * Uploads the documents chosen on the form once the draft is saved. A failed upload doesn't undo the draft: the user

@@ -4,6 +4,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { RequestDetailsPage } from '@/views/requests/detail/RequestDetailsPage';
 import { NewRequestPage } from '@/views/requests/form/RequestFormPage';
 
@@ -32,7 +33,7 @@ function request(overrides: Partial<RequestDetails> = {}): RequestDetails {
   return {
     publicId: 'abc',
     requestNo: '2026-0042',
-    status: 'PendingApproval',
+    status: STATUS_ACTIONS.PENDING_APPROVAL,
     statusName: 'Pending',
     initiator: { id: 3, name: 'Sanjay Initiator' },
     designation: 'Sr. Engineer - Production',
@@ -65,8 +66,8 @@ function request(overrides: Partial<RequestDetails> = {}): RequestDetails {
     closeComment: null,
     closedAt: null,
     reviewers: [
-      { id: 501, boxId: null, sequence: 0, kind: 'ReportingManager', name: 'Reporting Manager', user: { id: 4, name: 'Manoj Manager' }, status: 'Approved', reviewedAt: '2026-11-03T06:00:00Z', remarks: 'Fine', triggerCount: 0 },
-      { id: 502, boxId: 100, sequence: 1, kind: 'Reviewer', name: 'Quality', user: { id: 1, name: 'Riya Requester' }, status: 'Pending', reviewedAt: null, remarks: null, triggerCount: 1 },
+      { id: 501, boxId: null, sequence: 0, kind: 'ReportingManager', name: 'Reporting Manager', user: { id: 4, name: 'Manoj Manager' }, status: STATUS_ACTIONS.APPROVED, reviewedAt: '2026-11-03T06:00:00Z', remarks: 'Fine', triggerCount: 0 },
+      { id: 502, boxId: 100, sequence: 1, kind: 'Reviewer', name: 'Quality', user: { id: 1, name: 'Riya Requester' }, status: STATUS_ACTIONS.PENDING, reviewedAt: null, remarks: null, triggerCount: 1 },
     ],
     informedPeople: [],
     version: 'v3',
@@ -149,7 +150,7 @@ describe('new deviation', () => {
   });
 
   it('sends the fields, a person for each box of the category and the people to be informed', async () => {
-    const create = vi.fn((_: DraftDetails) => request({ publicId: 'new1', status: 'Draft', requestNo: null }));
+    const create = vi.fn((_: DraftDetails) => request({ publicId: 'new1', status: STATUS_ACTIONS.DRAFT, requestNo: null }));
     renderWithProviders(page, { path: '/requests/new', me: { permissions: ['dn.request.create'] }, routes: routes(create) });
 
     await screen.findByRole('button', { name: 'Save draft' });
@@ -221,7 +222,7 @@ describe('deviation details', () => {
       routes: {
         'GET /api/v1/requests/{publicId}': () =>
           request({
-            status: 'MoreDetailsRequired',
+            status: STATUS_ACTIONS.MORE_DETAILS_REQUIRED,
             moreInfo: 'Attach the supplier certificate.',
             allowedActions: { ...request().allowedActions!, canReview: false, canSubmit: true },
           }),
@@ -243,8 +244,8 @@ describe('deviation details', () => {
   });
 
   it.each([
-    ['Approve', 'approve', { status: 'Approved' as const }],
-    ['Reject', 'reject', { status: 'Rejected' as const }],
+    ['Approve', 'approve', { status: STATUS_ACTIONS.APPROVED }],
+    ['Reject', 'reject', { status: STATUS_ACTIONS.REJECTED }],
   ])('%s needs a comment and sends it with the version that was shown', async (button, path, after) => {
     const act = vi.fn((_: WorkflowActionInput) => request({ ...after, allowedActions: undefined, version: 'v4' }));
     renderWithProviders(details, {
@@ -299,7 +300,7 @@ describe('deviation details', () => {
   });
 
   it('lets the head of department close it as approved without a final approver', async () => {
-    const approve = vi.fn((_: ApproveInput) => request({ status: 'Approved', allowedActions: undefined, version: 'v4' }));
+    const approve = vi.fn((_: ApproveInput) => request({ status: STATUS_ACTIONS.APPROVED, allowedActions: undefined, version: 'v4' }));
     renderWithProviders(details, {
       path: '/requests/abc',
       routes: {

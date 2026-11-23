@@ -25,7 +25,8 @@ import { Box, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ccTags } from '@/api-callers/api-tags';
-import { actionStatusInfo } from '@/constants/complaints/status';
+import { actionStatusInfo } from '@/constants/complaint-status';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { useDeleteInternalAction, useSaveInternalAction } from '@/hooks/internal/mutations';
 
 interface InternalActionValues {
@@ -37,8 +38,8 @@ interface InternalActionValues {
 }
 
 const statuses: Option<ActionStatus>[] = [
-  { value: 'Open', label: 'Open' },
-  { value: 'Closed', label: 'Closed' },
+  { value: STATUS_ACTIONS.OPEN, label: 'Open' },
+  { value: STATUS_ACTIONS.CLOSED, label: 'Closed' },
 ];
 
 const serverFieldNames = { ownerUserId: 'owner' } as const;
@@ -51,7 +52,7 @@ function InternalActionDialog({ publicId, action, onClose }: { publicId: string;
       description: action?.description ?? '',
       owner: action?.owner ? { id: action.owner.id, name: action.owner.name ?? '' } : null,
       targetDate: action?.targetDate ?? null,
-      status: action?.status ?? 'Open',
+      status: action?.status ?? STATUS_ACTIONS.OPEN,
       remarks: action?.remarks ?? '',
     },
   });

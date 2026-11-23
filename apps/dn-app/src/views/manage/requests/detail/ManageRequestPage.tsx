@@ -30,7 +30,7 @@ import { useParams } from 'react-router';
 import { dnTags } from '@/api-callers/api-tags';
 import { useRequest } from '@/hooks/requests/queries';
 import { InformedPeople, ReviewerSequence } from '@/components/requests/ReviewersSection';
-import { inOrder, isOpenStep, MAX_INFORMED, statusInfo } from '@/constants/requests/status';
+import { inOrder, isOpenStep, MAX_INFORMED, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
 import {
   useAddReviewer,
   useChangeReviewer,
@@ -44,7 +44,7 @@ function ChangePersonDialog({ request, step, onClose }: { request: RequestDetail
   const change = useChangeReviewer(request.publicId);
   const failed = useActionFailure(dnTags.request.detail(request.publicId), { onConflict: onClose });
   const [person, setPerson] = useState<PersonOption | null>(null);
-  const waitingHere = step.id === request.currentReviewerId && request.status === 'PendingApproval';
+  const waitingHere = step.id === request.currentReviewerId && request.status === STATUS_ACTIONS.PENDING_APPROVAL;
 
   return (
     <ConfirmDialog
@@ -235,7 +235,7 @@ export function ManageRequestPage() {
                       <Button size="small" aria-label={`Change the person in ${step.name}`} onClick={() => { setDialog({ kind: 'change', step }); }}>
                         Change
                       </Button>
-                      {step.status === 'Waiting' && (
+                      {step.status === STATUS_ACTIONS.WAITING && (
                         <Button size="small" color="error" aria-label={`Remove ${step.name}`} onClick={() => { setDialog({ kind: 'remove', step }); }}>
                           Remove
                         </Button>

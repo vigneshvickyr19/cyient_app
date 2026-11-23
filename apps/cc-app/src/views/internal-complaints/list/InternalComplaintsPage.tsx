@@ -9,7 +9,7 @@ import { masterTypes } from '@/constants/masters';
 import { permissions } from '@/constants/permissions';
 import type { InternalListQuery } from '@/types/complaints';
 import { useInternalList } from '@/hooks/internal/queries';
-import { internalStatusInfo, internalStatusOptions, isInternalStatus } from '@/constants/internal/status';
+import { internalStatusInfo, internalStatusOptions, isInternalStatus } from '@/constants/internal-status';
 
 interface Filters {
   scope?: string;

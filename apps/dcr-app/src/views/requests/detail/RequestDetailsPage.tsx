@@ -27,7 +27,7 @@ import { useDcrApi } from '@/hooks/useDcrApi';
 import { ClausesSection } from '@/views/requests/detail/ClausesSection';
 import { useUploadDocument } from '@/hooks/requests/mutations';
 import { useRequest, useRequestDocuments, useRequestLog } from '@/hooks/requests/queries';
-import { releasedInfo, statusInfo } from '@/constants/requests/status';
+import { releasedInfo, STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
 import { WorkflowActions } from '@/views/requests/detail/WorkflowActions';
 
 const tabs = ['details', 'clauses', 'documents', 'log'] as const;
@@ -148,13 +148,13 @@ export function RequestDetailsPage() {
         status={
           <>
             <StatusChip {...statusInfo[details.status]} />
-            {details.status === 'Approved' && <StatusChip {...releasedInfo[details.releasedStatus]} />}
+            {details.status === STATUS_ACTIONS.APPROVED && <StatusChip {...releasedInfo[details.releasedStatus]} />}
           </>
         }
         actions={
           <>
             <WorkflowActions request={details} />
-            {details.status !== 'Draft' && (
+            {details.status !== STATUS_ACTIONS.DRAFT && (
               <Button startIcon={<PictureAsPdfOutlinedIcon />} loading={pdf.isPending} onClick={() => { pdf.mutate(); }}>
                 PDF
               </Button>
@@ -163,7 +163,7 @@ export function RequestDetailsPage() {
         }
       />
 
-      {details.status === 'Draft' && details.reviewStarted && (
+      {details.status === STATUS_ACTIONS.DRAFT && details.reviewStarted && (
         <InlineAlert severity="warning" title="Sent back to you">
           Make the changes asked for in the log, then submit it again. It starts again at IMS Review.
         </InlineAlert>

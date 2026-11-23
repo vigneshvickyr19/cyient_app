@@ -4,16 +4,16 @@ import { daysSince, formatDate, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { manageNotePermissions } from '@/constants/permissions';
-import { isNoteStatus, stageLabel, statusInfo } from '@/constants/notes/status';
+import { isNoteStatus, stageLabel, STATUS_ACTIONS, statusInfo } from '@/constants/note-status';
 import { useOpenTasks } from '@/hooks/manage/queries';
 
 /** The stages that have tasks, and who holds each. */
 const stageOptions: Option<NoteStatus>[] = [
-  { value: 'CftReview', label: 'CFT Review (CFT members)' },
-  { value: 'CftClosed', label: 'CFT Actions Closed (initiator)' },
-  { value: 'ReviewerReview', label: 'Reviewer Review' },
-  { value: 'ApproverReview', label: 'Approver Review' },
-  { value: 'Approved', label: 'Approved (release by ECN admins)' },
+  { value: STATUS_ACTIONS.CFT_REVIEW, label: 'CFT Review (CFT members)' },
+  { value: STATUS_ACTIONS.CFT_CLOSED, label: 'CFT Actions Closed (initiator)' },
+  { value: STATUS_ACTIONS.REVIEWER_REVIEW, label: 'Reviewer Review' },
+  { value: STATUS_ACTIONS.APPROVER_REVIEW, label: 'Approver Review' },
+  { value: STATUS_ACTIONS.APPROVED, label: 'Approved (release by ECN admins)' },
 ];
 
 interface Filters {

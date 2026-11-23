@@ -29,7 +29,7 @@ import { useUploadDocument } from '@/hooks/requests/mutations';
 import { useRequest, useRequestDocuments, useRequestHistory } from '@/hooks/requests/queries';
 import { InformedPeople, ReviewerSequence } from '@/components/requests/ReviewersSection';
 import { SerialsSection } from '@/views/requests/detail/SerialsSection';
-import { statusInfo } from '@/constants/requests/status';
+import { STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
 import { WorkflowActions } from '@/views/requests/detail/WorkflowActions';
 
 const tabs = ['details', 'reviewers', 'documents', 'history'] as const;
@@ -83,7 +83,7 @@ function RequestSummary({ request }: { request: RequestDetails }) {
           />
         </SectionCard>
       )}
-      {(request.status === 'Approved' || request.startingSerialNo !== null || request.endingSerialNo !== null) && <SerialsSection request={request} />}
+      {(request.status === STATUS_ACTIONS.APPROVED || request.startingSerialNo !== null || request.endingSerialNo !== null) && <SerialsSection request={request} />}
     </Stack>
   );
 }
@@ -134,7 +134,7 @@ function HistorySection({ publicId }: { publicId: string }) {
 function StateNotice({ request }: { request: RequestDetails }) {
   const { user } = useAuth();
   switch (request.status) {
-    case 'MoreDetailsRequired':
+    case STATUS_ACTIONS.MORE_DETAILS_REQUIRED:
       return request.initiator.id === user.userId ? (
         <InlineAlert severity="warning" title="More details are needed from you">
           {request.moreInfo ?? 'A reviewer asked for more details.'} Add any documents, then resubmit with your answer.
@@ -144,21 +144,21 @@ function StateNotice({ request }: { request: RequestDetails }) {
           More details were asked for: {request.moreInfo ?? '—'}
         </InlineAlert>
       );
-    case 'ClosedByAdmin':
+    case STATUS_ACTIONS.CLOSED_BY_ADMIN:
       return (
         <InlineAlert severity="info" title={`Closed by admin ${formatDateTime(request.closedAt)}`}>
           {request.closeComment ?? 'No comment was given.'}
         </InlineAlert>
       );
-    case 'Approved':
+    case STATUS_ACTIONS.APPROVED:
       return (
         <InlineAlert severity="success" title="Approved">
           Final approval {formatDate(request.finalApprovalDate)}; valid until {formatDate(request.validUntil)}.
         </InlineAlert>
       );
-    case 'Draft':
-    case 'PendingApproval':
-    case 'Rejected':
+    case STATUS_ACTIONS.DRAFT:
+    case STATUS_ACTIONS.PENDING_APPROVAL:
+    case STATUS_ACTIONS.REJECTED:
       return null;
   }
 }

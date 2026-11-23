@@ -1,4 +1,5 @@
 import type { EmailStatus, paths } from '@cyient/api-client/platform';
+import { STATUS_ACTIONS } from '@cyient/shared-utils';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Tone } from '../../index';
 import { usePlatformApi } from '../../index';
@@ -8,16 +9,21 @@ import { toastMeta } from '../../notifications/MutationToasts';
 
 export type EmailQuery = NonNullable<paths[typeof platformEndpoints.email.collection]['get']['parameters']['query']>;
 
-export const emailStatuses = ['Pending', 'Sending', 'Sent', 'Failed'] as const satisfies readonly EmailStatus[];
+export const emailStatuses = [
+  STATUS_ACTIONS.PENDING,
+  STATUS_ACTIONS.SENDING,
+  STATUS_ACTIONS.SENT,
+  STATUS_ACTIONS.FAILED,
+] as const satisfies readonly EmailStatus[];
 
 export function emailStatusTone(status: EmailStatus): Tone {
   switch (status) {
-    case 'Pending':
-    case 'Sending':
+    case STATUS_ACTIONS.PENDING:
+    case STATUS_ACTIONS.SENDING:
       return 'info';
-    case 'Sent':
+    case STATUS_ACTIONS.SENT:
       return 'success';
-    case 'Failed':
+    case STATUS_ACTIONS.FAILED:
       return 'error';
   }
 }

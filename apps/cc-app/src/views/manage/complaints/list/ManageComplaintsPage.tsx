@@ -3,7 +3,7 @@ import { DataTable, Dropdown, ErrorState, errorMessage, FilterBar, PageHeader, S
 import { formatDate } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
-import { isComplaintStatus, statusInfo, statusOptions } from '@/constants/complaints/status';
+import { isComplaintStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/complaint-status';
 import { useAdminComplaints } from '@/hooks/manage/queries';
 
 interface Filters {
@@ -12,7 +12,7 @@ interface Filters {
 }
 
 const columns: GridColDef<ComplaintListItem>[] = [
-  { field: 'complaintNo', headerName: 'Complaint no', minWidth: 140, sortable: false, valueGetter: (_, row) => row.complaintNo ?? 'Draft' },
+  { field: 'complaintNo', headerName: 'Complaint no', minWidth: 140, sortable: false, valueGetter: (_, row) => row.complaintNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'customer', headerName: 'Customer', minWidth: 170, sortable: false, valueGetter: (_, row) => row.customer.name },
   { field: 'complaintDescription', headerName: 'Complaint', flex: 1, minWidth: 200, sortable: false },
   { field: 'initiator', headerName: 'Initiator', minWidth: 160, sortable: false, valueGetter: (_, row) => row.initiator.name },

@@ -21,7 +21,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { ecnTags } from '@/api-callers/api-tags';
 import { useCftFunctions } from '@/hooks/masters/queries';
 import { useSetCftTeam } from '@/hooks/notes/mutations';
-import { isOpenAction } from '@/constants/notes/status';
+import { isOpenAction, STATUS_ACTIONS } from '@/constants/note-status';
 
 interface TeamRowValues {
   functionId: number;
@@ -127,7 +127,7 @@ function CftTeamDialog({ note, onClose }: { note: NoteDetails; onClose: () => vo
 /** What still blocks Send Meeting Notification, as the API says (missingForMeetingNotification). */
 export function MissingForMeeting({ note }: { note: NoteDetails }) {
   const missing = note.missingForMeetingNotification ?? [];
-  if (note.status !== 'Draft' || missing.length === 0) return null;
+  if (note.status !== STATUS_ACTIONS.DRAFT || missing.length === 0) return null;
   return (
     <InlineAlert severity="warning" title="Before the meeting notification can be sent">
       <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
@@ -148,7 +148,7 @@ export function CftTeamSection({ note }: { note: NoteDetails }) {
   const functions = useCftFunctions();
   const canEdit = note.allowedActions?.canEdit === true;
   const published = note.publishedToCftAt !== null;
-  const showAttendance = note.noteType === 'Tcn' && note.status !== 'Draft';
+  const showAttendance = note.noteType === 'Tcn' && note.status !== STATUS_ACTIONS.DRAFT;
   const actionCount = (functionId: number) => functions.data?.find((f) => f.id === functionId)?.actions.filter((a) => a.isActive).length;
 
   const columns: SimpleColumn<CftTeamRow>[] = [

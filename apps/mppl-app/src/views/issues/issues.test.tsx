@@ -5,6 +5,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
+import { STATUS_ACTIONS } from '@/constants/issue-status';
 import { IssueDetailsPage } from '@/views/issues/detail/IssueDetailsPage';
 import { NewIssuePage } from '@/views/issues/form/IssueFormPage';
 
@@ -111,7 +112,7 @@ describe('new issue', () => {
 function issue(overrides: Partial<IssueDetails> = {}): IssueDetails {
   return {
     publicId: '7f1c2a3b-0000-4000-8000-000000000001',
-    status: 'Open',
+    status: STATUS_ACTIONS.OPEN,
     project: { id: 1, name: 'Aero Avionics Board' },
     commodity: { id: 3, name: 'Electronics' },
     issueType: { id: 8, name: 'Price issue' },
@@ -170,7 +171,7 @@ describe('issue details', () => {
 
   it('closes with the comment and the version that was shown', async () => {
     const close = vi.fn((input: WorkflowActionInput) =>
-      issue({ status: 'Closed', closedAt: '2026-11-03T06:00:00Z', closedBy: { id: 5, name: 'Sharath Sourcing' }, sourcingComment: input.comment ?? null, version: 'v4' }),
+      issue({ status: STATUS_ACTIONS.CLOSED, closedAt: '2026-11-03T06:00:00Z', closedBy: { id: 5, name: 'Sharath Sourcing' }, sourcingComment: input.comment ?? null, version: 'v4' }),
     );
     renderWithProviders(details, {
       path: `/issues/${issue().publicId}`,

@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router';
 import { mpplTags } from '@/api-callers/api-tags';
 import { useIssue } from '@/hooks/issues/queries';
-import { issueTitle, statusInfo } from '@/constants/issues/status';
+import { issueTitle, STATUS_ACTIONS, statusInfo } from '@/constants/issue-status';
 import { useAdminCloseIssue } from '@/hooks/manage/mutations';
 import { useIssueRecord } from '@/hooks/manage/queries';
 
@@ -48,7 +48,7 @@ export function ManageIssuePage() {
         actions={
           <>
             <LinkButton to={`/issues/${publicId}`}>Open issue</LinkButton>
-            {details.status === 'Open' && (
+            {details.status === STATUS_ACTIONS.OPEN && (
               <Button variant="outlined" onClick={() => { setClosing(true); }}>
                 Close for Sourcing
               </Button>

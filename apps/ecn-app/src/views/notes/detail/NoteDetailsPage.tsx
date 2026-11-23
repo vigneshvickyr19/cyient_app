@@ -26,7 +26,7 @@ import { CftTeamSection, MissingForMeeting } from '@/views/notes/detail/CftTeamS
 import { FunctionTab } from '@/views/notes/detail/FunctionTab';
 import { ImmediateActionsSection, PartsSection } from '@/views/notes/detail/LinesSection';
 import { useNote, useNoteLog } from '@/hooks/notes/queries';
-import { faiLabels, isOpenAction, kindLabels, stageLabel, statusInfo, typeLabels } from '@/constants/notes/status';
+import { faiLabels, isOpenAction, kindLabels, stageLabel, STATUS_ACTIONS, statusInfo, typeLabels } from '@/constants/note-status';
 import { WorkflowActions } from '@/views/notes/detail/WorkflowActions';
 
 const fixedTabs = ['front', 'team', 'parts', 'immediate', 'attendance', 'attachments', 'log'] as const;
@@ -131,7 +131,7 @@ export function NoteDetailsPage() {
   const details = note.data;
   const title = `${typeLabels[details.noteType]} ${details.noteNo}`;
   const functionTabs = details.cftTeam.filter((row) => row.tabEnabled);
-  const showAttendance = details.noteType === 'Tcn' && details.status !== 'Draft';
+  const showAttendance = details.noteType === 'Tcn' && details.status !== STATUS_ACTIONS.DRAFT;
   const editable = details.allowedActions?.editableFunctionIds ?? [];
   const requested = params.get('tab') ?? 'front';
   const tab =
@@ -148,7 +148,7 @@ export function NoteDetailsPage() {
       <PageHeader
         title={title}
         subtitle={`${details.productNumber} · ${details.customer.name ?? ''}`}
-        breadcrumbs={[{ label: details.status === 'Released' ? 'Closed' : 'In progress', to: details.status === 'Released' ? '/closed' : '/notes' }, { label: title }]}
+        breadcrumbs={[{ label: details.status === STATUS_ACTIONS.RELEASED ? 'Closed' : 'In progress', to: details.status === STATUS_ACTIONS.RELEASED ? '/closed' : '/notes' }, { label: title }]}
         status={
           <>
             <StatusChip {...statusInfo[details.status]} />
@@ -167,8 +167,8 @@ export function NoteDetailsPage() {
 
       <Stack spacing={2}>
         {details.allowedActions?.canEdit && tab !== 'team' && <MissingForMeeting note={details} />}
-        {details.status === 'Cancelled' && <InlineAlert severity="warning">This note was cancelled. The reason is on the Log.</InlineAlert>}
-        {myTab && details.status === 'CftReview' && shownFunction?.functionId !== myTab.functionId && (
+        {details.status === STATUS_ACTIONS.CANCELLED && <InlineAlert severity="warning">This note was cancelled. The reason is on the Log.</InlineAlert>}
+        {myTab && details.status === STATUS_ACTIONS.CFT_REVIEW && shownFunction?.functionId !== myTab.functionId && (
           <InlineAlert
             action={
               <Button color="inherit" size="small" onClick={() => { openTab(`${FUNCTION_TAB}${myTab.functionId}`); }}>

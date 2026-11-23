@@ -14,7 +14,8 @@ import { useState } from 'react';
 import { useParams } from 'react-router';
 import { ccTags } from '@/api-callers/api-tags';
 import { useComplaint } from '@/hooks/complaints/queries';
-import { statusInfo } from '@/constants/complaints/status';
+import { statusInfo } from '@/constants/complaint-status';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { useCancelComplaint, useComplaintRecord } from '@/hooks/manage/queries';
 
 /** One complaint for administrators: cancel it with a reason, and see its history, emails and audit trail. */
@@ -31,7 +32,7 @@ export function ManageComplaintPage() {
 
   const details = complaint.data;
   const title = details.complaintNo ?? 'Draft complaint';
-  const cancellable = details.status !== 'Closed' && details.status !== 'Cancelled';
+  const cancellable = details.status !== STATUS_ACTIONS.CLOSED && details.status !== STATUS_ACTIONS.CANCELLED;
 
   return (
     <>

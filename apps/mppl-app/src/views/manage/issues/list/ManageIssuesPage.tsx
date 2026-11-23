@@ -4,7 +4,7 @@ import { Tab } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { issueColumns } from '@/components/issues/columns';
-import { statusInfo } from '@/constants/issues/status';
+import { STATUS_ACTIONS, statusInfo } from '@/constants/issue-status';
 import { useAdminIssues } from '@/hooks/manage/queries';
 
 type AdminList = Exclude<IssueList, null>;
@@ -15,9 +15,9 @@ interface Filters {
 }
 
 const lists: readonly { value: AdminList; label: string }[] = [
-  { value: 'Open', label: 'Open' },
-  { value: 'Fixed', label: 'Fixed' },
-  { value: 'Drafts', label: 'Drafts' },
+  { value: STATUS_ACTIONS.OPEN, label: 'Open' },
+  { value: STATUS_ACTIONS.FIXED, label: 'Fixed' },
+  { value: STATUS_ACTIONS.DRAFTS, label: 'Drafts' },
   { value: 'All', label: 'Open and fixed' },
 ];
 
@@ -37,7 +37,7 @@ const columns: GridColDef<IssueListItem>[] = [
 export function ManageIssuesPage() {
   const navigate = useNavigate();
   const list = useListState<Filters>(['list', 'search']);
-  const current: AdminList = lists.find((item) => item.value === list.filters.list)?.value ?? 'Open';
+  const current: AdminList = lists.find((item) => item.value === list.filters.list)?.value ?? STATUS_ACTIONS.OPEN;
   const issues = useAdminIssues({ List: current, Search: list.filters.search, Page: list.page, PageSize: list.pageSize });
 
   return (
@@ -46,7 +46,7 @@ export function ManageIssuesPage() {
       <SegmentedTabs
         value={current}
         onChange={(_, value: AdminList) => {
-          list.setFilters({ list: value === 'Open' ? undefined : value });
+          list.setFilters({ list: value === STATUS_ACTIONS.OPEN ? undefined : value });
         }}
         variant="scrollable"
         allowScrollButtonsMobile

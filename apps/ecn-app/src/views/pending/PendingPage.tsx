@@ -4,7 +4,7 @@ import { daysSince, formatDate, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { usePendingNotes } from '@/hooks/notes/queries';
-import { isNoteStatus, stageLabel, statusInfo, typeLabels } from '@/constants/notes/status';
+import { isNoteStatus, stageLabel, statusInfo, typeLabels } from '@/constants/note-status';
 
 const columns: GridColDef<PendingItem>[] = [
   { field: 'noteNo', headerName: 'Number', minWidth: 140, sortable: false },

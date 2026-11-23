@@ -4,6 +4,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { NoteDetailsPage } from '@/views/notes/detail/NoteDetailsPage';
 import { NewNotePage } from '@/views/notes/form/NoteFormPage';
 
@@ -61,7 +62,7 @@ function note(overrides: Partial<NoteDetails> = {}): NoteDetails {
     noteNo: '600000000042',
     noteType: 'Ecn',
     ecnKind: 'NonSap',
-    status: 'CftMeeting',
+    status: STATUS_ACTIONS.CFT_MEETING,
     statusName: 'CFT Meeting',
     productNumber: 'PCB-100',
     productDescription: 'Controller card',
@@ -130,7 +131,7 @@ describe('note details', () => {
   });
 
   it('publishes to the CFT with the target date and the version that was shown', async () => {
-    const publish = vi.fn((_: PublishToCftInput) => note({ status: 'CftReview', statusName: 'CFT Review', targetDate: '2099-12-31', version: 'v2' }));
+    const publish = vi.fn((_: PublishToCftInput) => note({ status: STATUS_ACTIONS.CFT_REVIEW, statusName: 'CFT Review', targetDate: '2099-12-31', version: 'v2' }));
     renderWithProviders(details, {
       path: '/notes/n1',
       routes: {
@@ -155,13 +156,13 @@ describe('note details', () => {
 
 describe('CFT actions', () => {
   it('closes an action only with its target and closed dates', async () => {
-    const update = vi.fn((_: CftActionInput) => note({ status: 'CftReview' }));
+    const update = vi.fn((_: CftActionInput) => note({ status: STATUS_ACTIONS.CFT_REVIEW }));
     renderWithProviders(details, {
       path: '/notes/n1?tab=function-2',
       routes: {
         'GET /api/v1/notes/{publicId}': () =>
           note({
-            status: 'CftReview',
+            status: STATUS_ACTIONS.CFT_REVIEW,
             publishedToCftAt: '2026-11-03T05:00:00Z',
             cftTeam: [teamRow({ functionId: 2, functionName: 'Quality', member: { id: 1, name: 'Kiran Quality' }, tabEnabled: true, actions: [action()] })],
             allowedActions: { ...noActions, editableFunctionIds: [2] },

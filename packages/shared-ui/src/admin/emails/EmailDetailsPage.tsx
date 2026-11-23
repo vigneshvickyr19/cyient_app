@@ -1,5 +1,5 @@
 import type { EmailDetails } from '@cyient/api-client/platform';
-import { formatDateTime, humanize } from '@cyient/shared-utils';
+import { formatDateTime, humanize, STATUS_ACTIONS } from '@cyient/shared-utils';
 import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import { Box, Link, Stack } from '@mui/material';
@@ -58,7 +58,7 @@ function EmailView({ email }: { email: EmailDetails }) {
         status={<StatusChip label={email.status} tone={emailStatusTone(email.status)} />}
         actions={
           <>
-            {email.status === 'Failed' && (
+            {email.status === STATUS_ACTIONS.FAILED && (
               <Button
                 variant="contained"
                 startIcon={<ReplayOutlinedIcon />}
@@ -69,7 +69,7 @@ function EmailView({ email }: { email: EmailDetails }) {
                 Retry
               </Button>
             )}
-            {email.status === 'Sent' && (
+            {email.status === STATUS_ACTIONS.SENT && (
               <Button
                 variant="outlined"
                 startIcon={<SendOutlinedIcon />}
@@ -85,7 +85,7 @@ function EmailView({ email }: { email: EmailDetails }) {
       />
       <Stack spacing={3}>
         {email.lastError && (
-          <InlineAlert severity={email.status === 'Failed' ? 'error' : 'warning'} title="Last error">
+          <InlineAlert severity={email.status === STATUS_ACTIONS.FAILED ? 'error' : 'warning'} title="Last error">
             {email.lastError}
           </InlineAlert>
         )}

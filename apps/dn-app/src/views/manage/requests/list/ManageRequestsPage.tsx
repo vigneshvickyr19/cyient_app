@@ -14,7 +14,7 @@ import {
 import { formatDate } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
-import { isDnStatus, statusInfo, statusOptions } from '@/constants/requests/status';
+import { isDnStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/request-status';
 import { useAdminRequests } from '@/hooks/manage/queries';
 
 interface Filters {
@@ -24,7 +24,7 @@ interface Filters {
 }
 
 const columns: GridColDef<RequestListItem>[] = [
-  { field: 'requestNo', headerName: 'Request no', minWidth: 120, sortable: false, valueGetter: (_, row) => row.requestNo ?? 'Draft' },
+  { field: 'requestNo', headerName: 'Request no', minWidth: 120, sortable: false, valueGetter: (_, row) => row.requestNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'requestDate', headerName: 'Date', minWidth: 110, sortable: false, valueFormatter: (value: string) => formatDate(value) },
   { field: 'initiator', headerName: 'Initiator', minWidth: 150, sortable: false, valueGetter: (_, row) => row.initiator.name },
   { field: 'changeCategory', headerName: 'Type of change', minWidth: 140, sortable: false, valueGetter: (_, row) => row.changeCategory.name },

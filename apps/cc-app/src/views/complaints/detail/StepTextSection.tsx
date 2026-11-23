@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { ccTags } from '@/api-callers/api-tags';
 import type { TextStep } from '@/api-callers/complaints/complaint.api';
 import { useSaveStep } from '@/hooks/complaints/mutations';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 
 interface StepValues {
   text: string;
@@ -16,21 +17,21 @@ const stepInfo: Record<TextStep, { title: string; label: string; status: Complai
   verification: {
     title: 'D6 Verification',
     label: 'Verification of the actions',
-    status: 'Verification',
+    status: STATUS_ACTIONS.VERIFICATION,
     next: 'Saving it opens D7, the horizontal deployment.',
     allowed: 'canSaveVerification',
   },
   horizontalDeployment: {
     title: 'D7 Horizontal Deployment',
     label: 'Horizontal deployment',
-    status: 'HorizontalDeployment',
+    status: STATUS_ACTIONS.HORIZONTAL_DEPLOYMENT,
     next: 'Saving it opens D8, the closure.',
     allowed: 'canSaveHorizontalDeployment',
   },
   closure: {
     title: 'D8 Closure',
     label: 'Closure summary',
-    status: 'Closure',
+    status: STATUS_ACTIONS.CLOSURE,
     next: 'Saving it sends the complaint back to the initiator to review and close.',
     allowed: 'canSaveClosureSummary',
   },

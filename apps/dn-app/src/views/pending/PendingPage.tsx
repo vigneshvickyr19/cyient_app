@@ -4,10 +4,10 @@ import { daysSince, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { usePendingRequests } from '@/hooks/requests/queries';
-import { statusInfo } from '@/constants/requests/status';
+import { STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
 
 const columns: GridColDef<PendingItem>[] = [
-  { field: 'requestNo', headerName: 'Request no', minWidth: 120, sortable: false, valueGetter: (_, row) => row.requestNo ?? 'Draft' },
+  { field: 'requestNo', headerName: 'Request no', minWidth: 120, sortable: false, valueGetter: (_, row) => row.requestNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'workOrderNo', headerName: 'W.O no', minWidth: 110, sortable: false },
   { field: 'productFgNumber', headerName: 'Product FG number', flex: 1, minWidth: 150, sortable: false },
   { field: 'changeCategory', headerName: 'Type of change', minWidth: 140, sortable: false, valueGetter: (_, row) => row.changeCategory.name },

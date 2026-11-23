@@ -1,4 +1,5 @@
 import type { EmailDetails } from '@cyient/api-client/platform';
+import { STATUS_ACTIONS } from '@cyient/shared-utils';
 import { configure, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
@@ -14,7 +15,7 @@ const failed: EmailDetails = {
   toAddresses: 'manager@cyient.test',
   ccAddresses: null,
   bodyHtml: '<p>Please <a href="https://dcr.cyient.test/requests/12">review</a>.</p>',
-  status: 'Failed',
+  status: STATUS_ACTIONS.FAILED,
   attemptCount: 3,
   lastError: 'Mailbox unavailable',
   eventType: 'ReviewAssigned',
@@ -52,7 +53,7 @@ describe('Email details', () => {
     renderEmail(failed, {
       'POST /api/v1/admin/emails/{emailId}/retry': ({ params }) => {
         retried(params.emailId);
-        return { ...failed, status: 'Pending', lastError: null };
+        return { ...failed, status: STATUS_ACTIONS.PENDING, lastError: null };
       },
     });
 
@@ -74,7 +75,7 @@ describe('Email details', () => {
   });
 
   it('offers Resend, not Retry, for a sent email', async () => {
-    renderEmail({ ...failed, status: 'Sent', lastError: null, sentAt: '2026-11-03T05:01:00Z' });
+    renderEmail({ ...failed, status: STATUS_ACTIONS.SENT, lastError: null, sentAt: '2026-11-03T05:01:00Z' });
 
     expect(await screen.findByRole('button', { name: 'Resend' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();

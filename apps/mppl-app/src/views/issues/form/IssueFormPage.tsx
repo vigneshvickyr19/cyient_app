@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router';
 import { IssueForm } from '@/views/issues/form/IssueForm';
 import { useCreateDraft, useUpdateDraft } from '@/hooks/issues/mutations';
 import { useIssue } from '@/hooks/issues/queries';
-import { issueTitle } from '@/constants/issues/status';
+import { issueTitle } from '@/constants/issue-status';
 
 /** New Issue: saves a draft, then opens it to add the reference documents and submit it. */
 export function NewIssuePage() {

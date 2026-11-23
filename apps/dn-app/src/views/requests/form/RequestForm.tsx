@@ -23,7 +23,7 @@ import { formatDate, maxLength, required } from '@cyient/shared-utils';
 import { Box, Stack, Typography } from '@mui/material';
 import { useForm, useWatch, type UseFormReturn } from 'react-hook-form';
 import { useReviewerBoxes } from '@/hooks/requests/queries';
-import { MAX_INFORMED } from '@/constants/requests/status';
+import { MAX_INFORMED } from '@/constants/request-status';
 
 /** The Deviation Request and Reviewers tabs, as the API's draft rules have them (BRD-03 section 5): every field is required. */
 export interface RequestFormValues {

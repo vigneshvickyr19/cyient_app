@@ -1,7 +1,7 @@
 import type { AttachmentKind } from '@cyient/api-client/ecn';
 import { documentUpload, type DocumentListProps } from '@cyient/shared-ui';
 import { useUploadAttachment } from '@/hooks/notes/mutations';
-import { attachmentExtensions } from '@/constants/notes/status';
+import { attachmentExtensions } from '@/constants/note-status';
 
 /**
  * The upload part of a document list for one kind of attachment on a note: the file is sent at once, and the app's

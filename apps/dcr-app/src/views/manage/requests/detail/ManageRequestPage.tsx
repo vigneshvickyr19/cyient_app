@@ -22,10 +22,20 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
 import { useRequest } from '@/hooks/requests/queries';
-import { statusInfo } from '@/constants/requests/status';
+import { STATUS_ACTIONS, statusInfo } from '@/constants/request-status';
 import { useCancelRequest, useCorrectRequest, useRequestRecord } from '@/hooks/manage/queries';
 
-const open = (status: RequestDetails['status']) => !['Approved', 'Cancelled', 'Withdrawn', 'ImsRejected', 'DeptManagerRejected', 'DeptHeadRejected', 'MrRejected'].includes(status);
+const closedStatuses: readonly RequestDetails['status'][] = [
+  STATUS_ACTIONS.APPROVED,
+  STATUS_ACTIONS.CANCELLED,
+  STATUS_ACTIONS.WITHDRAWN,
+  STATUS_ACTIONS.IMS_REJECTED,
+  STATUS_ACTIONS.DEPT_MANAGER_REJECTED,
+  STATUS_ACTIONS.DEPT_HEAD_REJECTED,
+  STATUS_ACTIONS.MR_REJECTED,
+];
+
+const open = (status: RequestDetails['status']) => !closedStatuses.includes(status);
 
 interface CorrectionValues {
   documentReference: string;
@@ -106,7 +116,7 @@ function CorrectDialog({ request, onClose }: { request: RequestDetails; onClose:
           <FormTextArea<CorrectionValues> name="riskToQms" label="Risk and impact on the QMS" rules={required('Risk and impact on the QMS')} />
           <FormTextArea<CorrectionValues> name="riskToDevices" label="Risk and impact on the devices" rules={required('Risk and impact on the devices')} />
           <FormDatePicker<CorrectionValues> name="needByDate" label="Need by date" rules={required('Need By Date')} />
-          {request.releasedStatus === 'Released' && (
+          {request.releasedStatus === STATUS_ACTIONS.RELEASED && (
             <FormDatePicker<CorrectionValues> name="effectiveImplementationDate" label="Effective implementation date" rules={{ validate: notInPast('Effective Implementation Date') }} />
           )}
           <FormTextArea<CorrectionValues> name="reason" label="Reason for the correction" minRows={2} rules={required('A reason')} />
@@ -141,7 +151,7 @@ export function ManageRequestPage() {
         actions={
           <>
             <LinkButton to={`/requests/${publicId}`}>Open request</LinkButton>
-            {details.status !== 'Draft' && details.status !== 'Cancelled' && <Button onClick={() => { setDialog('correct'); }}>Correct</Button>}
+            {details.status !== STATUS_ACTIONS.DRAFT && details.status !== STATUS_ACTIONS.CANCELLED && <Button onClick={() => { setDialog('correct'); }}>Correct</Button>}
             {open(details.status) && (
               <Button color="error" variant="outlined" onClick={() => { setDialog('cancel'); }}>
                 Cancel request

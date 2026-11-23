@@ -6,6 +6,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { ComplaintDetailsPage } from '@/views/complaints/detail/ComplaintDetailsPage';
 import { NewComplaintPage } from '@/views/complaints/form/ComplaintFormPage';
 
@@ -28,7 +29,7 @@ function complaint(overrides: Partial<ComplaintDetails> = {}): ComplaintDetails 
   return {
     publicId: 'c1',
     complaintNo: null,
-    status: 'Draft',
+    status: STATUS_ACTIONS.DRAFT,
     statusName: 'Draft',
     initiator: me,
     customer: { id: 1, name: 'Aero Systems Ltd' },
@@ -176,7 +177,7 @@ describe('publishing a draft', () => {
     const publish = vi.fn((_: WorkflowActionInput) =>
       complaint({
         complaintNo: 'CC/2026/0001',
-        status: 'RootCause',
+        status: STATUS_ACTIONS.ROOT_CAUSE,
         statusName: 'D4 Root Cause',
         teamMembers: team,
         publishedAt: '2026-11-03T05:00:00Z',
@@ -212,7 +213,7 @@ describe('closing a D5 action', () => {
       description: 'Replace the solder paste',
       owner: me,
       targetDate: '2099-01-01',
-      status: 'Open',
+      status: STATUS_ACTIONS.OPEN,
       closedAt: null,
       closedBy: null,
       closureRemarks: null,
@@ -224,7 +225,7 @@ describe('closing a D5 action', () => {
     const atActionPlan = () =>
       complaint({
         complaintNo: 'CC/2026/0001',
-        status: 'ActionPlan',
+        status: STATUS_ACTIONS.ACTION_PLAN,
         statusName: 'D5 Action Plan',
         initiator: { id: 3, name: 'Riya Initiator' },
         publishedAt: '2026-11-03T05:00:00Z',

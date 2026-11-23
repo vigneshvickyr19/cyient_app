@@ -11,7 +11,7 @@ import { useDnApi } from '@/hooks/useDnApi';
 import { permissions } from '@/constants/permissions';
 import type { RequestListQuery } from '@/types/requests';
 import { useRequestList } from '@/hooks/requests/queries';
-import { isDnStatus, statusInfo, statusOptions } from '@/constants/requests/status';
+import { isDnStatus, STATUS_ACTIONS, statusInfo, statusOptions } from '@/constants/request-status';
 
 interface Filters {
   scope?: string;
@@ -37,7 +37,7 @@ const sortFields: Record<string, RequestSort> = {
 };
 
 const columns: GridColDef<RequestListItem>[] = [
-  { field: 'requestNo', headerName: 'Request no', minWidth: 120, valueGetter: (_, row) => row.requestNo ?? 'Draft' },
+  { field: 'requestNo', headerName: 'Request no', minWidth: 120, valueGetter: (_, row) => row.requestNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'requestDate', headerName: 'Date', minWidth: 110, valueFormatter: (value: string) => formatDate(value) },
   { field: 'initiator', headerName: 'Initiator', minWidth: 150, sortable: false, valueGetter: (_, row) => row.initiator.name },
   { field: 'initiatorDepartment', headerName: 'Department', minWidth: 130, sortable: false, valueGetter: (_, row) => row.initiatorDepartment.name },

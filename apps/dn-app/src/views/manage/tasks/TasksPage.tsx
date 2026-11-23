@@ -4,6 +4,7 @@ import { daysSince, formatDateTime } from '@cyient/shared-utils';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router';
 import { permissions } from '@/constants/permissions';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 import { useOpenTasks } from '@/hooks/manage/queries';
 
 interface Filters {
@@ -13,7 +14,7 @@ interface Filters {
 }
 
 const columns: GridColDef<OpenTaskItem>[] = [
-  { field: 'requestNo', headerName: 'Request no', minWidth: 120, sortable: false, valueGetter: (_, row) => row.requestNo ?? 'Draft' },
+  { field: 'requestNo', headerName: 'Request no', minWidth: 120, sortable: false, valueGetter: (_, row) => row.requestNo ?? STATUS_ACTIONS.DRAFT },
   { field: 'pendingRole', headerName: 'Step', minWidth: 150, sortable: false },
   { field: 'assignee', headerName: 'Pending with', flex: 1, minWidth: 160, sortable: false, valueGetter: (_, row) => row.assignee?.name },
   { field: 'initiator', headerName: 'Initiator', minWidth: 150, sortable: false, valueGetter: (_, row) => row.initiator.name },

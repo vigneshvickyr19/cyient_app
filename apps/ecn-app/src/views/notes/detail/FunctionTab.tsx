@@ -27,7 +27,7 @@ import { downloadAttachment } from '@/api-callers/notes/attachment.api';
 import { useEcnApi } from '@/hooks/useEcnApi';
 import { toDocumentItems } from '@/utils/attachments';
 import { useUpdateCftAction } from '@/hooks/notes/mutations';
-import { actionStatusInfo, actionStatusOptions, isOpenAction } from '@/constants/notes/status';
+import { actionStatusInfo, actionStatusOptions, isOpenAction, STATUS_ACTIONS } from '@/constants/note-status';
 import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 
 interface CftActionFormValues {
@@ -239,7 +239,7 @@ export function FunctionTab({ note, row }: { note: NoteDetails; row: CftTeamRow 
 
   return (
     <Stack spacing={2}>
-      {editable && note.status === 'CftReview' && (
+      {editable && note.status === STATUS_ACTIONS.CFT_REVIEW && (
         <InlineAlert>
           These are your actions. Close each one with its target and closed dates, or mark it Not Applicable. When the last one closes, the initiator can
           publish the note to the Reviewer.

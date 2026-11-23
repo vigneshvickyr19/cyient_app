@@ -6,7 +6,7 @@ import { downloadAttachment } from '@/api-callers/notes/attachment.api';
 import { useEcnApi } from '@/hooks/useEcnApi';
 import { toDocumentItems } from '@/utils/attachments';
 import { useNoteAttachments } from '@/hooks/notes/queries';
-import { attachmentKindLabels } from '@/constants/notes/status';
+import { attachmentKindLabels } from '@/constants/note-status';
 import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 
 /** What each kind of document is for, under its heading. */

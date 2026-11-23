@@ -3,7 +3,7 @@ import { SectionCard, SimpleTable, StatusChip, type SimpleColumn } from '@cyient
 import { formatDateTime } from '@cyient/shared-utils';
 import { Chip, Stack, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
-import { inOrder, reviewerKindLabel, reviewerStatusInfo } from '@/constants/requests/status';
+import { inOrder, reviewerKindLabel, reviewerStatusInfo } from '@/constants/request-status';
 
 interface ReviewerSequenceProps {
   request: RequestDetails;

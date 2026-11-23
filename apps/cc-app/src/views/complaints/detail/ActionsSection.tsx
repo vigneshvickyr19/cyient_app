@@ -29,7 +29,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ccTags } from '@/api-callers/api-tags';
 import { useCloseAction, useDeleteAction, useSaveAction, useUploadEvidence, useWorkflowAction } from '@/hooks/complaints/mutations';
-import { actionStatusInfo } from '@/constants/complaints/status';
+import { actionStatusInfo } from '@/constants/complaint-status';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 
 const LONG_TEXT = 4000;
 
@@ -252,7 +253,7 @@ export function ActionsSection({ complaint, onMoved }: { complaint: ComplaintDet
           <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
             {row.description}
           </Typography>
-          {row.status === 'Closed' && (
+          {row.status === STATUS_ACTIONS.CLOSED && (
             <Typography variant="caption" color="text.secondary">
               Closed by {row.closedBy?.name ?? 'the owner'} on {formatDateTime(row.closedAt)}
               {row.closureRemarks ? `: ${row.closureRemarks}` : ''}
@@ -269,7 +270,7 @@ export function ActionsSection({ complaint, onMoved }: { complaint: ComplaintDet
       render: (row) => (
         <Stack spacing={0.5} sx={{ alignItems: 'flex-start' }}>
           <span>{formatDate(row.targetDate)}</span>
-          {row.status === 'Open' && row.targetDate < today && <StatusChip label="Overdue" tone="error" />}
+          {row.status === STATUS_ACTIONS.OPEN && row.targetDate < today && <StatusChip label="Overdue" tone="error" />}
         </Stack>
       ),
     },
@@ -310,7 +311,7 @@ export function ActionsSection({ complaint, onMoved }: { complaint: ComplaintDet
               Close
             </Button>
           )}
-          {canManage && row.status === 'Open' && (
+          {canManage && row.status === STATUS_ACTIONS.OPEN && (
             <>
               <Tooltip title="Change">
                 <IconButton aria-label={`Change action ${row.sortOrder}`} onClick={() => { setEditing(row); }}>
@@ -329,7 +330,7 @@ export function ActionsSection({ complaint, onMoved }: { complaint: ComplaintDet
     },
   ];
 
-  const open = complaint.actions.filter((action) => action.status === 'Open').length;
+  const open = complaint.actions.filter((action) => action.status === STATUS_ACTIONS.OPEN).length;
 
   return (
     <Stack spacing={2}>

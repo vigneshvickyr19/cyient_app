@@ -5,6 +5,7 @@ import { Stack } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { ccTags } from '@/api-callers/api-tags';
 import { useSaveRootCause } from '@/hooks/complaints/mutations';
+import { STATUS_ACTIONS } from '@/constants/status-actions';
 
 interface RootCauseValues {
   occurrence: string;
@@ -62,7 +63,7 @@ export function RootCauseSection({ complaint, onMoved }: RootCauseSectionProps) 
   return (
     <SectionCard
       title="D4 Root cause"
-      subheader={complaint.status === 'RootCause' ? 'Fill in at least one segment. Saving it opens D5, the action plan.' : 'Fill in at least one segment.'}
+      subheader={complaint.status === STATUS_ACTIONS.ROOT_CAUSE ? 'Fill in at least one segment. Saving it opens D5, the action plan.' : 'Fill in at least one segment.'}
     >
       <Form form={form} onSubmit={submit}>
         <Stack spacing={2}>

@@ -12,7 +12,7 @@ import { permissions } from '@/constants/permissions';
 import { useCustomerOptions } from '@/hooks/masters/queries';
 import type { NoteListQuery } from '@/types/notes';
 import { useNoteList } from '@/hooks/notes/queries';
-import { isEcnKind, isNoteStatus, isNoteType, kindLabels, kindOptions, openStatusOptions, statusInfo, statusOptions, typeLabels } from '@/constants/notes/status';
+import { isEcnKind, isNoteStatus, isNoteType, kindLabels, kindOptions, openStatusOptions, statusInfo, statusOptions, typeLabels } from '@/constants/note-status';
 
 interface Filters {
   type?: string;

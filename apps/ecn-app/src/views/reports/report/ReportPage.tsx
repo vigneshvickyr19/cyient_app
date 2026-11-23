@@ -23,7 +23,7 @@ import { exportOpenEcnReport } from '@/api-callers/reports/report.api';
 import { useEcnApi } from '@/hooks/useEcnApi';
 import { permissions } from '@/constants/permissions';
 import { useCustomerOptions } from '@/hooks/masters/queries';
-import { statusInfo } from '@/constants/notes/status';
+import { statusInfo } from '@/constants/note-status';
 import { useOpenEcnReport } from '@/hooks/reports/queries';
 
 interface Filters {

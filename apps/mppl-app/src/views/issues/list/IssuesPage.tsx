@@ -11,7 +11,7 @@ import { permissions } from '@/constants/permissions';
 import { issueColumns, landingColumns } from '@/components/issues/columns';
 import type { IssueListQuery } from '@/types/issues';
 import { useIssueList } from '@/hooks/issues/queries';
-import { isIssueTab, type IssueTab } from '@/constants/issues/status';
+import { isIssueTab, type IssueTab, STATUS_ACTIONS } from '@/constants/issue-status';
 
 interface Filters {
   list?: string;
@@ -80,7 +80,7 @@ export function IssuesPage() {
   const list = useListState<Filters>(filterNames);
   const { filters } = list;
   const canCreate = can(permissions.create);
-  const tab: IssueTab = isIssueTab(filters.list) && (filters.list !== 'Drafts' || canCreate) ? filters.list : 'Open';
+  const tab: IssueTab = isIssueTab(filters.list) && (filters.list !== STATUS_ACTIONS.DRAFTS || canCreate) ? filters.list : STATUS_ACTIONS.OPEN;
   const projects = useMasterOptions('Project');
   const commodities = useMasterOptions('Commodity');
   const issueTypes = useMasterOptions('IssueType');
@@ -132,15 +132,15 @@ export function IssuesPage() {
       <SegmentedTabs
         value={tab}
         onChange={(_, value: IssueTab) => {
-          list.setFilters({ list: value === 'Open' ? undefined : value });
+          list.setFilters({ list: value === STATUS_ACTIONS.OPEN ? undefined : value });
         }}
         variant="scrollable"
         allowScrollButtonsMobile
         sx={{ mb: 2 }}
       >
-        <Tab value="Open" label="Open issues" />
-        <Tab value="Fixed" label="Fixed issues" />
-        {canCreate && <Tab value="Drafts" label="My drafts" />}
+        <Tab value={STATUS_ACTIONS.OPEN} label="Open issues" />
+        <Tab value={STATUS_ACTIONS.FIXED} label="Fixed issues" />
+        {canCreate && <Tab value={STATUS_ACTIONS.DRAFTS} label="My drafts" />}
       </SegmentedTabs>
 
       <FilterBar
@@ -203,7 +203,7 @@ export function IssuesPage() {
           onSortChange={list.setSort}
           onRowClick={(row) => void navigate(`/issues/${row.publicId}`)}
           emptyTitle={filtered ? 'No issues match these filters' : tabText[tab].empty}
-          emptyMessage={tab === 'Drafts' && !filtered ? 'Raise one with New issue.' : undefined}
+          emptyMessage={tab === STATUS_ACTIONS.DRAFTS && !filtered ? 'Raise one with New issue.' : undefined}
         />
       )}
     </>
